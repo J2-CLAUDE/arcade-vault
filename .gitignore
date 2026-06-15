@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# claude code — config local/personal (hooks, etc.)
+.claude/settings.local.json
+
 # screenshots (verificación manual, no se commitean)
 /.screenshots/
 
