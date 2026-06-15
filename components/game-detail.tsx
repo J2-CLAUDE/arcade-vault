@@ -57,7 +57,7 @@ export default function GameDetail({
             <Link href={`/jugar/${game.id}`} className="btn xl pulse">
               ▶&nbsp;&nbsp;JUGAR AHORA
             </Link>
-            <Link href="/" className="btn ghost lg">
+            <Link href="/games" className="btn ghost lg">
               VOLVER AL VAULT
             </Link>
           </div>

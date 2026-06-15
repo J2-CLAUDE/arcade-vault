@@ -1,5 +1,5 @@
-import Library from "@/components/library";
+import Home from "@/components/home";
 
 export default function Page() {
-  return <Library />;
+  return <Home />;
 }
