@@ -14,3 +14,9 @@ https://github.com/Klerith/fernando-skills
 ```bash
 npx skills@latest add Klerith/fernando-skills
 ```
+
+## Prompt para crear agente
+
+```
+Necesito que me ayudes a crear el siguiente agente "@game-planner: Agente que planifica, piensa, y decide qué juego encaja con la plataforma". Necesito que el agente mantenga una memoria de lo que se ha sugerido previamente.
+```
