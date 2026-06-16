@@ -4,41 +4,66 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "./session-provider";
 import type { Game } from "@/lib/data";
+import AsteroidsGame from "./games/asteroids-game";
 
 export default function GamePlayer({ game }: { game: Game }) {
   const router = useRouter();
   const { user, saveScore } = useSession();
 
-  const [score, setScore] = useState(0);
-  const [lives] = useState(3);
+  const isAsteroids = game.id === "asteroids";
+
+  // Shared state
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [name, setName] = useState(user?.name ?? "INVITADO");
   const [saved, setSaved] = useState(false);
 
-  // Level derived from score — no separate state, no effect needed
+  // Mock ticker state (non-asteroids only)
+  const [score, setScore] = useState(0);
+  const [lives] = useState(3);
   const level = Math.max(1, Math.floor(score / 2500) + 1);
 
-  // Score ticker — stops when paused or game over
+  // Asteroids state
+  const [finalScore, setFinalScore] = useState(0);
+  const [restartKey, setRestartKey] = useState(0);
+
+  const displayScore = isAsteroids ? finalScore : score;
+
+  // Score ticker — mock only, stops when paused or game over
   useEffect(() => {
-    if (over || paused) return;
+    if (isAsteroids || over || paused) return;
     const t = setInterval(() => {
       setScore((s) => s + Math.floor(10 + Math.random() * 90));
     }, 220);
     return () => clearInterval(t);
-  }, [over, paused]);
+  }, [isAsteroids, over, paused]);
 
-  const endGame = () => setOver(true);
+  // Called by AsteroidsGame when the engine reaches gameover state
+  const handleEngineGameOver = (s: number) => {
+    setFinalScore(s);
+    setOver(true);
+  };
+
+  const endGame = () => {
+    if (isAsteroids) setPaused(true); // pause engine before showing modal
+    setOver(true);
+  };
 
   const restart = () => {
-    setScore(0);
-    setPaused(false);
+    if (isAsteroids) {
+      setRestartKey((k) => k + 1);
+      setFinalScore(0);
+      setPaused(false);
+    } else {
+      setScore(0);
+      setPaused(false);
+    }
     setOver(false);
     setSaved(false);
   };
 
   const handleSave = () => {
-    saveScore({ game: game.id, score, name });
+    saveScore({ game: game.id, score: displayScore, name });
     setSaved(true);
   };
 
@@ -53,18 +78,24 @@ export default function GamePlayer({ game }: { game: Game }) {
               {user?.name ?? "INVITADO"}
             </div>
           </div>
-          <div className="hud-stat">
-            <div className="l">Puntuación</div>
-            <div className="v">{score.toLocaleString("es-ES")}</div>
-          </div>
-          <div className="hud-stat lives">
-            <div className="l">Vidas</div>
-            <div className="v">{"♥ ".repeat(lives).trim() || "—"}</div>
-          </div>
-          <div className="hud-stat level">
-            <div className="l">Nivel</div>
-            <div className="v">{String(level).padStart(2, "0")}</div>
-          </div>
+          {/* Puntuación / Vidas / Nivel are shown only for mock ticker games;
+              for asteroids the HUD lives inside the canvas */}
+          {!isAsteroids && (
+            <>
+              <div className="hud-stat">
+                <div className="l">Puntuación</div>
+                <div className="v">{score.toLocaleString("es-ES")}</div>
+              </div>
+              <div className="hud-stat lives">
+                <div className="l">Vidas</div>
+                <div className="v">{"♥ ".repeat(lives).trim() || "—"}</div>
+              </div>
+              <div className="hud-stat level">
+                <div className="l">Nivel</div>
+                <div className="v">{String(level).padStart(2, "0")}</div>
+              </div>
+            </>
+          )}
         </div>
         <div className="hud-actions">
           <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
@@ -85,35 +116,45 @@ export default function GamePlayer({ game }: { game: Game }) {
       {/* CRT arena */}
       <div className="crt">
         <div className="crt-screen">
-          <div className="game-arena">
-            <div className="grid-floor" />
-            <div className="enemy e1" />
-            <div className="enemy e2" />
-            <div className="enemy e3" />
-            <div className="player-ship" />
-          </div>
-          {paused && (
-            <div
-              className="crt-content"
-              style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}
-            >
-              <div>
-                <div className="pixel neon-yellow" style={{ fontSize: 22 }}>
-                  EN PAUSA
-                </div>
-                <div
-                  className="mono"
-                  style={{
-                    fontSize: 11,
-                    color: "var(--ink-dim)",
-                    marginTop: 10,
-                    letterSpacing: "0.16em",
-                  }}
-                >
-                  PULSA REANUDAR PARA CONTINUAR
-                </div>
+          {isAsteroids ? (
+            <AsteroidsGame
+              paused={paused}
+              onGameOver={handleEngineGameOver}
+              restartKey={restartKey}
+            />
+          ) : (
+            <>
+              <div className="game-arena">
+                <div className="grid-floor" />
+                <div className="enemy e1" />
+                <div className="enemy e2" />
+                <div className="enemy e3" />
+                <div className="player-ship" />
               </div>
-            </div>
+              {paused && (
+                <div
+                  className="crt-content"
+                  style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}
+                >
+                  <div>
+                    <div className="pixel neon-yellow" style={{ fontSize: 22 }}>
+                      EN PAUSA
+                    </div>
+                    <div
+                      className="mono"
+                      style={{
+                        fontSize: 11,
+                        color: "var(--ink-dim)",
+                        marginTop: 10,
+                        letterSpacing: "0.16em",
+                      }}
+                    >
+                      PULSA REANUDAR PARA CONTINUAR
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
         <div className="crt-bottom">
@@ -129,7 +170,7 @@ export default function GamePlayer({ game }: { game: Game }) {
           <div className="modal">
             <h2>FIN DEL JUEGO</h2>
             <div className="final-label">PUNTUACIÓN FINAL</div>
-            <div className="final">{score.toLocaleString("es-ES")}</div>
+            <div className="final">{displayScore.toLocaleString("es-ES")}</div>
             {!saved ? (
               <div className="input-row">
                 <input
@@ -150,7 +191,10 @@ export default function GamePlayer({ game }: { game: Game }) {
               <button className="btn" onClick={restart}>
                 JUGAR DE NUEVO
               </button>
-              <button className="btn magenta" onClick={() => router.push("/games")}>
+              <button
+                className="btn magenta"
+                onClick={() => router.push("/games")}
+              >
                 VOLVER AL VAULT
               </button>
             </div>
