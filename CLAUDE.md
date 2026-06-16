@@ -135,3 +135,15 @@ See `.env.template`. Required:
 This project follows **Spec-Driven Design** using the `/spec` and `/spec-impl` skills from the `Klerith/fernando-skills` collection. Each feature gets a numbered spec in `specs/NN-name.md`, then is implemented from it. Add a new spec before building a substantial feature.
 
 A number of agent skills are installed (`skills-lock.json`) — notably `next-best-practices`, `next-cache-components`, `react-best-practices`, `composition-patterns`, `tailwind-css-patterns`, `supabase-postgres-best-practices`, `playwright-best-practices`, `frontend-design`, `accessibility`, and `seo`. Lean on the relevant skill when working in its domain.
+
+## Custom agents
+
+Project-level subagents live in `.claude/agents/`.
+
+### `game-planner`
+
+**File:** `.claude/agents/game-planner.md` | **Model:** Opus | **Color:** magenta
+
+Decides which new retro game fits the Arcade Vault catalog. Invoke it when evaluating what game to add next — it reasons about category gaps, color balance, theme fit (neón/CRT, Spanish UI), and motor feasibility (mock ticker vs. real `EngineHandle` canvas engine). It does **not** write specs or app code.
+
+**Memory:** reads and appends to `references/game-suggestions-todo.md` at every invocation — will not re-suggest games already logged there.
