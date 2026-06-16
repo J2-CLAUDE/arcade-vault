@@ -2,9 +2,9 @@
 
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
-import type { Game } from "@/lib/data";
+import type { GameWithStats } from "@/lib/games-data";
 
-export default function GameCard({ game }: { game: Game }) {
+export default function GameCard({ game }: { game: GameWithStats }) {
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -33,7 +33,13 @@ export default function GameCard({ game }: { game: Game }) {
         : "btn";
 
   return (
-    <div ref={ref} className="card" onMouseMove={onMove} onMouseLeave={onLeave} onClick={go}>
+    <div
+      ref={ref}
+      className="card"
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      onClick={go}
+    >
       <div className="cover">
         <div className={"cover-bg " + game.cover} />
         <div className="label">{game.cat}</div>
@@ -44,11 +50,14 @@ export default function GameCard({ game }: { game: Game }) {
         <div className="row">
           <div className="score-badge">
             <span>MEJOR PUNTUACIÓN</span>
-            <b>{game.best.toLocaleString("es-ES")}</b>
+            <b>{(game.best ?? 0).toLocaleString("es-ES")}</b>
           </div>
           <button
             className={btnClass}
-            onClick={(e) => { e.stopPropagation(); go(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              go();
+            }}
           >
             JUGAR
           </button>

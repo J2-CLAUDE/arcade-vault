@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "./session-provider";
-import type { Game } from "@/lib/data";
+import { saveScore, incrementPlay } from "@/lib/games-client";
+import type { GameWithStats } from "@/lib/games-data";
 import AsteroidsGame from "./games/asteroids-game";
 
-export default function GamePlayer({ game }: { game: Game }) {
+export default function GamePlayer({ game }: { game: GameWithStats }) {
   const router = useRouter();
-  const { user, saveScore } = useSession();
+  const { user } = useSession();
 
   const isAsteroids = game.id === "asteroids";
 
@@ -62,9 +63,14 @@ export default function GamePlayer({ game }: { game: Game }) {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    saveScore({ game: game.id, score: displayScore, name });
+  const handleSave = async () => {
+    const gameId = game.id ?? "";
+    await Promise.all([
+      saveScore({ game_id: gameId, player_name: name, score: displayScore }),
+      incrementPlay(gameId),
+    ]);
     setSaved(true);
+    router.refresh();
   };
 
   return (
@@ -106,7 +112,7 @@ export default function GamePlayer({ game }: { game: Game }) {
           </button>
           <button
             className="btn ghost"
-            onClick={() => router.push(`/juego/${game.id}`)}
+            onClick={() => router.push(`/juego/${game.id ?? ""}`)}
           >
             SALIR
           </button>
@@ -159,7 +165,7 @@ export default function GamePlayer({ game }: { game: Game }) {
         </div>
         <div className="crt-bottom">
           <span className="led">SEÑAL OK</span>
-          <span>{game.title} · CRT-83 · 60 HZ</span>
+          <span>{game.title ?? ""} · CRT-83 · 60 HZ</span>
           <span>CARGA · 1MB</span>
         </div>
       </div>

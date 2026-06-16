@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { GAMES, seededScores } from "@/lib/data";
+import { GAMES } from "@/lib/data";
+import { getGame, getGameLeaderboard } from "@/lib/games-data";
 import GameDetail from "@/components/game-detail";
 
 export function generateStaticParams() {
@@ -12,10 +13,22 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const game = GAMES.find((g) => g.id === id);
+  const [game, rawScores] = await Promise.all([
+    getGame(id),
+    getGameLeaderboard(id, 10),
+  ]);
   if (!game) notFound();
 
-  const scores = seededScores(id.length * 17 + 3, 10);
+  const scores = rawScores.map((s, i) => ({
+    rank: i + 1,
+    name: s.player_name,
+    score: s.score,
+    date: new Date(s.created_at).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }),
+  }));
 
   return <GameDetail game={game} scores={scores} />;
 }

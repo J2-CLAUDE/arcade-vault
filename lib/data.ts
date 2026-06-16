@@ -19,6 +19,8 @@ export type ScoreRow = {
   date: string;
 };
 
+// MOCK / SEED DATA — source of truth for the Supabase migration seed.
+// Do NOT use GAMES at runtime; read from Supabase (lib/games-data.ts) instead.
 export const GAMES: Game[] = [
   {
     id: "bloque-buster",
@@ -112,6 +114,8 @@ export const GAMES: Game[] = [
 
 export const CATS = ["TODOS", "ARCADE", "PUZZLE", "SHOOTER", "VERSUS"] as const;
 
+// MOCK / SEED DATA — player names used by the migration seed and seededScores().
+// Do NOT use PLAYERS or seededScores() at runtime.
 const PLAYERS = [
   "PX_KAI",
   "NEONFOX",

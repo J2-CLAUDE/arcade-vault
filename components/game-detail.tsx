@@ -1,11 +1,13 @@
 import Link from "next/link";
-import type { Game, ScoreRow } from "@/lib/data";
+import type { ScoreRow } from "@/lib/data";
+import type { GameWithStats } from "@/lib/games-data";
+import { formatPlays } from "@/lib/games-data";
 
 export default function GameDetail({
   game,
   scores,
 }: {
-  game: Game;
+  game: GameWithStats;
   scores: ScoreRow[];
 }) {
   return (
@@ -26,7 +28,7 @@ export default function GameDetail({
           <div className="stat-strip">
             <div>
               <div className="l">Partidas</div>
-              <div className="v">{game.plays}</div>
+              <div className="v">{formatPlays(game.plays ?? 0)}</div>
             </div>
             <div>
               <div className="l">Mejor global</div>
@@ -37,7 +39,7 @@ export default function GameDetail({
                   textShadow: "0 0 6px rgba(255,0,110,0.5)",
                 }}
               >
-                {game.best.toLocaleString("es-ES")}
+                {(game.best ?? 0).toLocaleString("es-ES")}
               </div>
             </div>
             <div>

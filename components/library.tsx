@@ -1,21 +1,22 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { GAMES, CATS } from "@/lib/data";
+import { CATS } from "@/lib/data";
+import type { GameWithStats } from "@/lib/games-data";
 import GameCard from "./game-card";
 
-export default function Library() {
+export default function Library({ games }: { games: GameWithStats[] }) {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("TODOS");
 
   const filtered = useMemo(
     () =>
-      GAMES.filter(
+      games.filter(
         (g) =>
           (cat === "TODOS" || g.cat === cat) &&
-          g.title.toLowerCase().includes(q.toLowerCase())
+          (g.title ?? "").toLowerCase().includes(q.toLowerCase()),
       ),
-    [q, cat]
+    [games, q, cat],
   );
 
   return (
@@ -64,7 +65,11 @@ export default function Library() {
           >
             <div
               className="pixel"
-              style={{ fontSize: 14, color: "var(--magenta)", marginBottom: 12 }}
+              style={{
+                fontSize: 14,
+                color: "var(--magenta)",
+                marginBottom: 12,
+              }}
             >
               NO HAY RESULTADOS
             </div>

@@ -2,17 +2,53 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { GAMES, seededScores } from "@/lib/data";
+import type { GameWithStats, GlobalScoreRow } from "@/lib/games-data";
 import { useSession } from "./session-provider";
 
-export default function HallOfFame() {
-  const { user } = useSession();
-  const [tab, setTab] = useState(GAMES[0].id);
+type Row = {
+  rank: number;
+  name: string;
+  score: number;
+  date: string;
+};
 
-  const rows = useMemo(() => seededScores(tab.length * 23 + 7, 12), [tab]);
-  const game = GAMES.find((g) => g.id === tab)!;
-  const youRank = user ? Math.floor(8 + (tab.length % 4)) : null;
-  const youScore = user ? (rows[5]?.score - 2400) : null;
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+export default function HallOfFame({
+  games,
+  scores,
+}: {
+  games: GameWithStats[];
+  scores: GlobalScoreRow[];
+}) {
+  const { user } = useSession();
+  const [tab, setTab] = useState(games[0]?.id ?? "");
+
+  const rows: Row[] = useMemo(
+    () =>
+      scores
+        .filter((s) => s.game_id === tab)
+        .sort((a, b) => b.score - a.score)
+        .map((s, i) => ({
+          rank: i + 1,
+          name: s.player_name,
+          score: s.score,
+          date: fmtDate(s.created_at),
+        })),
+    [scores, tab],
+  );
+
+  const game = games.find((g) => g.id === tab);
+  const youRow = user
+    ? (rows.find((r) => r.name.toLowerCase() === user.name.toLowerCase()) ??
+      null)
+    : null;
 
   return (
     <div className="av-hall fade-in">
@@ -25,11 +61,11 @@ export default function HallOfFame() {
 
       {/* Tabs por juego */}
       <div className="hall-tabs">
-        {GAMES.map((g) => (
+        {games.map((g) => (
           <button
             key={g.id}
             className={"chip" + (tab === g.id ? " active" : "")}
-            onClick={() => setTab(g.id)}
+            onClick={() => setTab(g.id ?? "")}
           >
             {g.title}
           </button>
@@ -40,26 +76,39 @@ export default function HallOfFame() {
       <div className="podium">
         <div className="podium-slot silver">
           <div className="rank-num">02</div>
-          <div className="name">{rows[1].name}</div>
-          <div className="score">{rows[1].score.toLocaleString("es-ES")}</div>
-          <div className="date">{rows[1].date}</div>
+          <div className="name">{rows[1]?.name ?? "—"}</div>
+          <div className="score">
+            {(rows[1]?.score ?? 0).toLocaleString("es-ES")}
+          </div>
+          <div className="date">{rows[1]?.date ?? ""}</div>
         </div>
         <div className="podium-slot gold">
-          <div className="pixel" style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.18em" }}>
+          <div
+            className="pixel"
+            style={{
+              fontSize: 9,
+              color: "var(--gold)",
+              letterSpacing: "0.18em",
+            }}
+          >
             CAMPEÓN
           </div>
-          <div className="rank-num" style={{ fontSize: 36, marginTop: 4 }}>01</div>
-          <div className="name">{rows[0].name}</div>
-          <div className="score" style={{ fontSize: 20 }}>
-            {rows[0].score.toLocaleString("es-ES")}
+          <div className="rank-num" style={{ fontSize: 36, marginTop: 4 }}>
+            01
           </div>
-          <div className="date">{rows[0].date}</div>
+          <div className="name">{rows[0]?.name ?? "—"}</div>
+          <div className="score" style={{ fontSize: 20 }}>
+            {(rows[0]?.score ?? 0).toLocaleString("es-ES")}
+          </div>
+          <div className="date">{rows[0]?.date ?? ""}</div>
         </div>
         <div className="podium-slot bronze">
           <div className="rank-num">03</div>
-          <div className="name">{rows[2].name}</div>
-          <div className="score">{rows[2].score.toLocaleString("es-ES")}</div>
-          <div className="date">{rows[2].date}</div>
+          <div className="name">{rows[2]?.name ?? "—"}</div>
+          <div className="score">
+            {(rows[2]?.score ?? 0).toLocaleString("es-ES")}
+          </div>
+          <div className="date">{rows[2]?.date ?? ""}</div>
         </div>
       </div>
 
@@ -87,18 +136,18 @@ export default function HallOfFame() {
           </div>
         ))}
 
-        {/* Fila "tú" si hay sesión */}
-        {user && (
+        {/* Fila "tú" si hay sesión y no estás ya en el top */}
+        {user && youRow && (
           <>
             <div className="tr you-label">
-              ▸ TU MEJOR MARCA EN {game.title}
+              ▸ TU MEJOR MARCA EN {game?.title ?? ""}
             </div>
             <div
               className="tr you"
               style={{ animationDelay: `${rows.length * 50 + 50}ms` }}
             >
               <div className="rk" style={{ color: "var(--yellow)" }}>
-                #{String(youRank).padStart(2, "0")}
+                #{String(youRow.rank).padStart(2, "0")}
               </div>
               <div className="pl" style={{ color: "var(--yellow)" }}>
                 {user.name}
@@ -110,9 +159,9 @@ export default function HallOfFame() {
                   textShadow: "0 0 6px rgba(245,255,0,0.5)",
                 }}
               >
-                {(youScore ?? 9999).toLocaleString("es-ES")}
+                {youRow.score.toLocaleString("es-ES")}
               </div>
-              <div className="dt">11/05/2026</div>
+              <div className="dt">{youRow.date}</div>
             </div>
           </>
         )}
