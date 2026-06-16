@@ -6,12 +6,15 @@ import { useSession } from "./session-provider";
 import { saveScore, incrementPlay } from "@/lib/games-client";
 import type { GameWithStats } from "@/lib/games-data";
 import AsteroidsGame from "./games/asteroids-game";
+import TetrisGame from "./games/tetris-game";
 
 export default function GamePlayer({ game }: { game: GameWithStats }) {
   const router = useRouter();
   const { user } = useSession();
 
   const isAsteroids = game.id === "asteroids";
+  const isTetris = game.id === "tetris";
+  const isEngine = isAsteroids || isTetris; // real engine — HUD lives inside canvas
 
   // Shared state
   const [paused, setPaused] = useState(false);
@@ -28,16 +31,16 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
   const [finalScore, setFinalScore] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
 
-  const displayScore = isAsteroids ? finalScore : score;
+  const displayScore = isEngine ? finalScore : score;
 
   // Score ticker — mock only, stops when paused or game over
   useEffect(() => {
-    if (isAsteroids || over || paused) return;
+    if (isEngine || over || paused) return;
     const t = setInterval(() => {
       setScore((s) => s + Math.floor(10 + Math.random() * 90));
     }, 220);
     return () => clearInterval(t);
-  }, [isAsteroids, over, paused]);
+  }, [isEngine, over, paused]);
 
   // Called by AsteroidsGame when the engine reaches gameover state
   const handleEngineGameOver = (s: number) => {
@@ -46,12 +49,12 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
   };
 
   const endGame = () => {
-    if (isAsteroids) setPaused(true); // pause engine before showing modal
+    if (isEngine) setPaused(true); // pause engine before showing modal
     setOver(true);
   };
 
   const restart = () => {
-    if (isAsteroids) {
+    if (isEngine) {
       setRestartKey((k) => k + 1);
       setFinalScore(0);
       setPaused(false);
@@ -85,8 +88,8 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
             </div>
           </div>
           {/* Puntuación / Vidas / Nivel are shown only for mock ticker games;
-              for asteroids the HUD lives inside the canvas */}
-          {!isAsteroids && (
+              for engine games (asteroids, tetris) the HUD lives inside the canvas */}
+          {!isEngine && (
             <>
               <div className="hud-stat">
                 <div className="l">Puntuación</div>
@@ -124,6 +127,12 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
         <div className="crt-screen">
           {isAsteroids ? (
             <AsteroidsGame
+              paused={paused}
+              onGameOver={handleEngineGameOver}
+              restartKey={restartKey}
+            />
+          ) : isTetris ? (
+            <TetrisGame
               paused={paused}
               onGameOver={handleEngineGameOver}
               restartKey={restartKey}
