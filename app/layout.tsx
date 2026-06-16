@@ -19,7 +19,8 @@ const jetBrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Arcade Vault",
-  description: "Juega juegos retro y compite en los rankings. Plataforma arcade neon/CRT.",
+  description:
+    "Juega juegos retro y compite en los rankings. Plataforma arcade neon/CRT.",
 };
 
 export default function RootLayout({
@@ -32,23 +33,27 @@ export default function RootLayout({
       lang="es"
       className={`${pressStart2P.variable} ${jetBrainsMono.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
         <div className="av-bg" />
         <div className="av-noise" />
         <SessionProvider>
-          <Nav />
-          <main className="av-main">{children}</main>
-          <footer style={{
-            borderTop: "1px solid var(--line)",
-            padding: "20px 32px",
-            textAlign: "center",
-            color: "var(--ink-faint)",
-            fontFamily: "var(--mono)",
-            fontSize: 11,
-            letterSpacing: "0.16em",
-          }}>
-            © 2026 ARCADE VAULT · HECHO CON PIXELES Y NEÓN · v2.6.0
-          </footer>
+          <div id="root">
+            <Nav />
+            <main className="av-main">{children}</main>
+            <footer
+              style={{
+                borderTop: "1px solid var(--line)",
+                padding: "20px 32px",
+                textAlign: "center",
+                color: "var(--ink-faint)",
+                fontFamily: "var(--mono)",
+                fontSize: 11,
+                letterSpacing: "0.16em",
+              }}
+            >
+              © 2026 ARCADE VAULT · HECHO CON PIXELES Y NEÓN · v2.6.0
+            </footer>
+          </div>
         </SessionProvider>
       </body>
     </html>
