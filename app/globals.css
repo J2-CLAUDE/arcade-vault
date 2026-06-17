@@ -3034,3 +3034,310 @@ a {
     display: none !important;
   }
 }
+
+/* ===== SITE FOOTER ===== */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 20px 32px;
+  text-align: center;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+/* ===== MOBILE GAME BOY LAYOUT ===== */
+
+/* 1 — Hide nav + footer while playing (coarse pointer only) */
+@media (pointer: coarse) {
+  body.is-playing .av-nav,
+  body.is-playing .site-footer {
+    display: none;
+  }
+
+  /* 2 — Full-screen player column */
+  body.is-playing {
+    overflow: hidden;
+  }
+
+  body.is-playing .av-main {
+    overflow: hidden;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body.is-playing .av-player {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  /* Desktop HUD hidden; mobile meta strip takes over */
+  body.is-playing .player-hud {
+    display: none;
+  }
+
+  /* 3 — CRT fills remaining vertical space */
+  body.is-playing .crt {
+    flex: 1;
+    min-height: 0;
+    border-radius: 8px;
+    padding: 6px;
+    margin: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 3c — Screen fills the central flex area; each engine scales its own buffer */
+  body.is-playing .crt-screen {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto;
+  }
+
+  body.is-playing .crt-screen canvas {
+    /* Each engine's buffer scales to fill the screen while preserving its
+       own aspect ratio (Tetris portrait fills; Asteroids letterboxes). */
+    object-fit: contain;
+  }
+
+  body.is-playing .crt-bottom {
+    display: none;
+  }
+
+  /* 4 — Gamepad */
+  .gamepad {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    gap: 24px;
+    background: var(--bg-2, #111);
+    border-top: 1px solid var(--line);
+    touch-action: none;
+    flex-shrink: 0;
+  }
+
+  /* D-pad cross — 3×3 grid */
+  .gamepad-dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 52px);
+    grid-template-rows: repeat(3, 52px);
+    gap: 3px;
+  }
+
+  .dpad-corner {
+    background: transparent;
+  }
+
+  .dpad-center {
+    background: rgba(0, 245, 255, 0.05);
+    border: 1px solid rgba(0, 245, 255, 0.15);
+    border-radius: 2px;
+  }
+
+  .dpad-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    line-height: 1;
+    /* Raised-key: lighter top → darker bottom in cyan tones */
+    background: linear-gradient(
+      180deg,
+      rgba(0, 245, 255, 0.22) 0%,
+      rgba(0, 180, 200, 0.1) 100%
+    );
+    border: 1px solid var(--cyan);
+    border-radius: 8px;
+    color: var(--cyan);
+    font-family: var(--pixel);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+    /* Bevel: inset highlight top-left, inset shadow bottom-right, soft drop shadow */
+    box-shadow:
+      inset 0 2px 0 rgba(255, 255, 255, 0.25),
+      inset -2px 0 0 rgba(255, 255, 255, 0.08),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.45),
+      inset 2px 0 0 rgba(0, 0, 0, 0.2),
+      0 4px 8px rgba(0, 0, 0, 0.55);
+    transition:
+      background 60ms,
+      box-shadow 60ms,
+      transform 60ms;
+  }
+
+  .dpad-btn:active {
+    /* Sunken / pressed look — invert the bevel */
+    background: linear-gradient(
+      180deg,
+      rgba(0, 180, 200, 0.08) 0%,
+      rgba(0, 245, 255, 0.28) 100%
+    );
+    box-shadow:
+      inset 0 -2px 0 rgba(255, 255, 255, 0.15),
+      inset -2px 0 0 rgba(255, 255, 255, 0.05),
+      inset 0 2px 0 rgba(0, 0, 0, 0.5),
+      inset 2px 0 0 rgba(0, 0, 0, 0.25),
+      0 0 14px rgba(0, 245, 255, 0.55),
+      0 1px 2px rgba(0, 0, 0, 0.4);
+    transform: translateY(1px);
+  }
+
+  /* Inert cell — no button, just fills the grid (e.g. Asteroids ▼) */
+  .dpad-btn--inert {
+    background: rgba(0, 245, 255, 0.02);
+    border-color: rgba(0, 245, 255, 0.1);
+    pointer-events: none;
+    cursor: default;
+  }
+
+  /* A/B buttons — Game Boy diagonal: B top-right, A bottom-left */
+  .gamepad-ab {
+    /* 2×2 grid — B occupies col2/row1, A occupies col1/row2 */
+    display: grid;
+    grid-template-columns: 64px 64px;
+    grid-template-rows: 64px 64px;
+    gap: 10px;
+    align-items: center;
+    justify-items: center;
+  }
+
+  .ab-btn--b {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .ab-btn--a {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .ab-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--pixel);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+    transition:
+      background 60ms,
+      box-shadow 60ms,
+      filter 60ms,
+      transform 60ms;
+  }
+
+  /* A — solid magenta fill, dark text for contrast */
+  .ab-btn--a {
+    background: var(--magenta);
+    border: 2px solid var(--magenta);
+    color: #1a0010;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+    box-shadow:
+      0 0 12px rgba(255, 0, 110, 0.55),
+      0 4px 8px rgba(0, 0, 0, 0.5);
+  }
+
+  .ab-btn--a:active {
+    filter: brightness(1.25);
+    transform: scale(0.93);
+    box-shadow:
+      0 0 22px rgba(255, 0, 110, 0.75),
+      0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  /* B — solid yellow fill, dark text for contrast */
+  .ab-btn--b {
+    background: var(--yellow);
+    border: 2px solid var(--yellow);
+    color: #1a1a00;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+    box-shadow:
+      0 0 12px rgba(245, 255, 0, 0.5),
+      0 4px 8px rgba(0, 0, 0, 0.5);
+  }
+
+  .ab-btn--b:active {
+    filter: brightness(1.2);
+    transform: scale(0.93);
+    box-shadow:
+      0 0 22px rgba(245, 255, 0, 0.7),
+      0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  /* 5 — Mobile meta strip */
+  .player-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--bg-2, #111);
+    border-top: 1px solid var(--line);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .player-meta-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .player-meta-name {
+    font-family: var(--pixel);
+    font-size: 7px;
+    color: var(--cyan);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 0 8px rgba(0, 245, 255, 0.5);
+  }
+
+  .player-meta-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .player-meta-actions .btn {
+    padding: 8px 12px;
+    font-size: 7px;
+  }
+}
+
+/* Gamepad + meta strip never appear on fine-pointer devices */
+@media (pointer: fine) {
+  .gamepad {
+    display: none !important;
+  }
+
+  .player-meta {
+    display: none !important;
+  }
+}

@@ -5,6 +5,7 @@ import {
   useEffect,
   useLayoutEffect,
   useImperativeHandle,
+  useState,
   type Ref,
 } from "react";
 import {
@@ -33,6 +34,21 @@ export default function TetrisGame({
   const onGameOverRef = useRef(onGameOver);
   const restartKeyRef = useRef(restartKey);
 
+  // Detect touch (coarse-pointer) devices — portrait layout for Tetris on mobile.
+  const [orientation, setOrientation] = useState<"landscape" | "portrait">(
+    "landscape",
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(pointer: coarse)");
+    const update = (e: MediaQueryListEvent | MediaQueryList) => {
+      setOrientation(e.matches ? "portrait" : "landscape");
+    };
+    update(mq);
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   useImperativeHandle(ref, () => ({
     start: () => engineRef.current?.start(),
     pause: () => engineRef.current?.pause(),
@@ -51,8 +67,8 @@ export default function TetrisGame({
     onGameOverRef.current = onGameOver;
   });
 
-  // Mount / recreate — rebuild the engine on skin change so the new palette
-  // takes effect (engines read their palette once, at construction).
+  // Mount / recreate — rebuild the engine on skin or orientation change so the
+  // new palette / layout takes effect (engines read both once, at construction).
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -62,6 +78,7 @@ export default function TetrisGame({
     const engine = createTetrisEngine(ctx, {
       onGameOver: (score) => onGameOverRef.current(score),
       skin: SKINS[skin],
+      orientation,
     });
     engineRef.current = engine;
     engine.start();
@@ -70,7 +87,7 @@ export default function TetrisGame({
       engine.destroy();
       engineRef.current = null;
     };
-  }, [skin]);
+  }, [skin, orientation]);
 
   // Pause / resume
   useEffect(() => {
@@ -88,11 +105,14 @@ export default function TetrisGame({
     engineRef.current?.restart();
   }, [restartKey]);
 
+  const canvasW = orientation === "portrait" ? 360 : 800;
+  const canvasH = orientation === "portrait" ? 720 : 600;
+
   return (
     <canvas
       ref={canvasRef}
-      width={800}
-      height={600}
+      width={canvasW}
+      height={canvasH}
       style={{ display: "block", width: "100%", height: "100%" }}
     />
   );

@@ -2,10 +2,7 @@ import { SKINS, type SkinPalette } from "@/lib/games/skins";
 
 const COLS = 10;
 const ROWS = 20;
-const BLOCK = 30;
-const BOARD_W = COLS * BLOCK; // 300
-const CANVAS_W = 800;
-const CANVAS_H = 600;
+// BLOCK, BOARD_W, CANVAS_W, CANVAS_H are now computed per instance from orientation.
 
 const PIECES: (number[][] | null)[] = [
   null,
@@ -80,6 +77,8 @@ export interface EngineCallbacks {
   onGameOver: (finalScore: number) => void;
   /** Optional skin palette. Defaults to `clasico` for backward compatibility. */
   skin?: SkinPalette;
+  /** Layout orientation. "landscape" (default) = desktop 800×600. "portrait" = mobile 360×720. */
+  orientation?: "landscape" | "portrait";
 }
 
 export function createTetrisEngine(
@@ -91,6 +90,39 @@ export function createTetrisEngine(
   const GRID_LINE = skin.grid;
   // Glow softens the retro/neon contrast difference. Only neon uses it.
   const blockGlow = skin.glow ? 8 : 0;
+
+  // ── Per-instance layout (orientation-aware) ──────────────────────────────
+  const orientation = callbacks.orientation ?? "landscape";
+  let BLOCK: number;
+  let BOARD_W: number;
+  let CANVAS_W: number;
+  let CANVAS_H: number;
+  let BOARD_X: number;
+  let BOARD_Y: number;
+  let HUD_H: number;
+
+  if (orientation === "portrait") {
+    CANVAS_W = 360;
+    CANVAS_H = 720;
+    HUD_H = 88;
+    BLOCK = Math.min(
+      Math.floor(CANVAS_W / COLS),
+      Math.floor((CANVAS_H - HUD_H) / ROWS),
+    );
+    BOARD_W = COLS * BLOCK;
+    BOARD_X = Math.floor((CANVAS_W - BOARD_W) / 2);
+    BOARD_Y = HUD_H;
+  } else {
+    // landscape — desktop-identical values
+    BLOCK = 30;
+    BOARD_W = COLS * BLOCK; // 300
+    CANVAS_W = 800;
+    CANVAS_H = 600;
+    BOARD_X = 0;
+    BOARD_Y = 0;
+    HUD_H = 0; // unused in landscape
+  }
+  // ─────────────────────────────────────────────────────────────────────────
   let board!: Board;
   let current!: Piece;
   let next!: Piece;
@@ -262,21 +294,22 @@ export function createTetrisEngine(
     ctx.lineWidth = 0.5;
     for (let c = 1; c < COLS; c++) {
       ctx.beginPath();
-      ctx.moveTo(c * BLOCK, 0);
-      ctx.lineTo(c * BLOCK, ROWS * BLOCK);
+      ctx.moveTo(BOARD_X + c * BLOCK, BOARD_Y);
+      ctx.lineTo(BOARD_X + c * BLOCK, BOARD_Y + ROWS * BLOCK);
       ctx.stroke();
     }
     for (let r = 1; r < ROWS; r++) {
       ctx.beginPath();
-      ctx.moveTo(0, r * BLOCK);
-      ctx.lineTo(BOARD_W, r * BLOCK);
+      ctx.moveTo(BOARD_X, BOARD_Y + r * BLOCK);
+      ctx.lineTo(BOARD_X + BOARD_W, BOARD_Y + r * BLOCK);
       ctx.stroke();
     }
   }
 
   function drawBoard(): void {
     for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c < COLS; c++) drawBlock(c, r, board[r][c], BLOCK);
+      for (let c = 0; c < COLS; c++)
+        drawBlock(c, r, board[r][c], BLOCK, 1, BOARD_X, BOARD_Y);
   }
 
   function drawGhost(): void {
@@ -284,16 +317,33 @@ export function createTetrisEngine(
     for (let r = 0; r < current.shape.length; r++)
       for (let c = 0; c < current.shape[r].length; c++)
         if (current.shape[r][c])
-          drawBlock(current.x + c, gy + r, current.shape[r][c], BLOCK, 0.2);
+          drawBlock(
+            current.x + c,
+            gy + r,
+            current.shape[r][c],
+            BLOCK,
+            0.2,
+            BOARD_X,
+            BOARD_Y,
+          );
   }
 
   function drawCurrent(): void {
     for (let r = 0; r < current.shape.length; r++)
       for (let c = 0; c < current.shape[r].length; c++)
-        drawBlock(current.x + c, current.y + r, current.shape[r][c], BLOCK);
+        drawBlock(
+          current.x + c,
+          current.y + r,
+          current.shape[r][c],
+          BLOCK,
+          1,
+          BOARD_X,
+          BOARD_Y,
+        );
   }
 
-  function drawHUD(): void {
+  // Landscape HUD — right-side panel (unchanged from original)
+  function drawHUDLandscape(): void {
     // Panel background
     ctx.fillStyle = "rgba(0,0,0,0.45)";
     ctx.fillRect(BOARD_W, 0, CANVAS_W - BOARD_W, CANVAS_H);
@@ -387,6 +437,96 @@ export function createTetrisEngine(
     }
   }
 
+  // Portrait HUD — thin top strip with SCORE · LÍNEAS · NIVEL + next-piece preview
+  function drawHUDPortrait(): void {
+    // Strip background
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    ctx.fillRect(0, 0, CANVAS_W, HUD_H);
+
+    // Bottom border of strip
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, HUD_H);
+    ctx.lineTo(CANVAS_W, HUD_H);
+    ctx.stroke();
+
+    // Layout: three stats evenly spaced, then a next-piece preview on the right
+    const NB = 14; // small preview block size
+    const PREVIEW_COLS = 4;
+    const PREVIEW_ROWS = 2;
+    const previewW = PREVIEW_COLS * NB;
+    const previewH = PREVIEW_ROWS * NB;
+    const previewX = CANVAS_W - previewW - 10;
+    const previewY = Math.floor((HUD_H - previewH) / 2);
+
+    const statsWidth = previewX - 8;
+    const colW = Math.floor(statsWidth / 3);
+
+    const statDefs = [
+      {
+        label: "SCORE",
+        value: score.toLocaleString(),
+        color: COLORS[1] ?? skin.primary,
+      },
+      {
+        label: "LÍNEAS",
+        value: String(lines),
+        color: COLORS[2] ?? skin.accent,
+      },
+      {
+        label: "NIVEL",
+        value: String(level),
+        color: COLORS[4] ?? skin.secondary,
+      },
+    ];
+
+    ctx.textAlign = "center";
+    statDefs.forEach((s, i) => {
+      const cx = colW * i + Math.floor(colW / 2);
+      ctx.font = "9px monospace";
+      ctx.fillStyle = "rgba(255,255,255,0.45)";
+      ctx.fillText(s.label, cx, 22);
+      ctx.font = "bold 16px monospace";
+      ctx.fillStyle = s.color;
+      ctx.fillText(s.value, cx, 46);
+    });
+
+    // Separator before preview
+    ctx.strokeStyle = "rgba(255,255,255,0.1)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(previewX - 6, 8);
+    ctx.lineTo(previewX - 6, HUD_H - 8);
+    ctx.stroke();
+
+    // Next-piece preview (small, top-right area)
+    ctx.strokeStyle = "rgba(255,255,255,0.18)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(previewX, previewY, previewW, previewH);
+
+    const shape = next.shape;
+    const offCol = Math.floor((PREVIEW_COLS - shape[0].length) / 2);
+    const offRow = Math.floor((PREVIEW_ROWS - shape.length) / 2);
+    for (let r = 0; r < shape.length; r++) {
+      for (let c = 0; c < shape[r].length; c++) {
+        if (!shape[r][c]) continue;
+        const color = COLORS[shape[r][c]];
+        if (!color) continue;
+        const bx = previewX + (offCol + c) * NB;
+        const by = previewY + (offRow + r) * NB;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = color;
+        ctx.fillRect(bx + 1, by + 1, NB - 2, NB - 2);
+        ctx.fillStyle = "rgba(255,255,255,0.12)";
+        ctx.fillRect(bx + 1, by + 1, NB - 2, 3);
+      }
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.textAlign = "left";
+  }
+
   function draw(): void {
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
     drawGrid();
@@ -395,7 +535,11 @@ export function createTetrisEngine(
       drawGhost();
       drawCurrent();
     }
-    drawHUD();
+    if (orientation === "portrait") {
+      drawHUDPortrait();
+    } else {
+      drawHUDLandscape();
+    }
   }
 
   // --- Game loop ---

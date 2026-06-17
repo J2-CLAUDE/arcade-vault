@@ -44,6 +44,12 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
 
   const displayScore = isEngine ? finalScore : score;
 
+  // Mobile full-screen: add is-playing to body so CSS can hide nav + footer
+  useEffect(() => {
+    document.body.classList.add("is-playing");
+    return () => document.body.classList.remove("is-playing");
+  }, []);
+
   // Score ticker — mock only, stops when paused or game over
   useEffect(() => {
     if (isEngine || over || paused) return;
@@ -209,14 +215,56 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
             </>
           )}
         </div>
-        {isAsteroids && (
-          <TouchControls game="asteroids" engine={asteroidsEngineRef} />
-        )}
-        {isTetris && <TouchControls game="tetris" engine={tetrisEngineRef} />}
         <div className="crt-bottom">
           <span className="led">SEÑAL OK</span>
           <span>{game.title ?? ""} · CRT-83 · 60 HZ</span>
           <span>CARGA · 1MB</span>
+        </div>
+      </div>
+
+      {/* Mobile gamepad — shown only on coarse-pointer devices (touch) */}
+      {isAsteroids && (
+        <TouchControls game="asteroids" engine={asteroidsEngineRef} />
+      )}
+      {isTetris && <TouchControls game="tetris" engine={tetrisEngineRef} />}
+
+      {/* Mobile meta strip — replaces HUD on coarse-pointer devices */}
+      <div className="player-meta">
+        <div className="player-meta-info">
+          <span className="player-meta-name">{user?.name ?? "INVITADO"}</span>
+          <fieldset
+            className="skin-picker"
+            role="radiogroup"
+            aria-label="Apariencia del juego"
+          >
+            <legend className="skin-picker-legend">Skin</legend>
+            {SKIN_LIST.map((s) => (
+              <label key={s.id} className="skin-option" title={s.label}>
+                <input
+                  type="radio"
+                  name="skin-meta"
+                  value={s.id}
+                  checked={skin === s.id}
+                  onChange={() => setSkin(s.id)}
+                />
+                <span>{s.label}</span>
+              </label>
+            ))}
+          </fieldset>
+        </div>
+        <div className="player-meta-actions">
+          <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
+            {paused ? "▶" : "⏸"}
+          </button>
+          <button className="btn magenta" onClick={endGame}>
+            FIN
+          </button>
+          <button
+            className="btn ghost"
+            onClick={() => router.push(`/juego/${game.id ?? ""}`)}
+          >
+            ✕
+          </button>
         </div>
       </div>
 
