@@ -1,22 +1,11 @@
+import { SKINS, type SkinPalette } from "@/lib/games/skins";
+
 const COLS = 10;
 const ROWS = 20;
 const BLOCK = 30;
 const BOARD_W = COLS * BLOCK; // 300
 const CANVAS_W = 800;
 const CANVAS_H = 600;
-const GRID_LINE = "rgba(255,255,255,0.06)";
-
-const COLORS: (string | null)[] = [
-  null,
-  "#4dd0e1", // 1 I - cyan
-  "#ffd54f", // 2 O - yellow
-  "#ba68c8", // 3 T - purple
-  "#81c784", // 4 S - green
-  "#e57373", // 5 Z - red
-  "#90caf9", // 6 J - pale blue
-  "#ffb74d", // 7 L - orange
-  "#9e9e9e", // 8 N - tuerca (gris metálico)
-];
 
 const PIECES: (number[][] | null)[] = [
   null,
@@ -84,12 +73,19 @@ export interface EngineHandle {
 
 export interface EngineCallbacks {
   onGameOver: (finalScore: number) => void;
+  /** Optional skin palette. Defaults to `clasico` for backward compatibility. */
+  skin?: SkinPalette;
 }
 
 export function createTetrisEngine(
   ctx: CanvasRenderingContext2D,
   callbacks: EngineCallbacks,
 ): EngineHandle {
+  const skin = callbacks.skin ?? SKINS.clasico;
+  const COLORS = skin.pieces;
+  const GRID_LINE = skin.grid;
+  // Glow softens the retro/neon contrast difference. Only neon uses it.
+  const blockGlow = skin.glow ? 8 : 0;
   let board!: Board;
   let current!: Piece;
   let next!: Piece;
@@ -234,6 +230,10 @@ export function createTetrisEngine(
     const color = COLORS[colorIndex];
     if (!color) return;
     ctx.globalAlpha = alpha;
+    if (blockGlow) {
+      ctx.shadowColor = color;
+      ctx.shadowBlur = blockGlow;
+    }
     ctx.fillStyle = color;
     ctx.fillRect(
       pixelOffX + x * size + 1,
@@ -241,6 +241,7 @@ export function createTetrisEngine(
       size - 2,
       size - 2,
     );
+    ctx.shadowBlur = 0;
     ctx.fillStyle = "rgba(255,255,255,0.12)";
     ctx.fillRect(
       pixelOffX + x * size + 1,
@@ -310,7 +311,7 @@ export function createTetrisEngine(
     ctx.fillText("SCORE", px, y);
     y += 24;
     ctx.font = "bold 24px monospace";
-    ctx.fillStyle = "#4dd0e1";
+    ctx.fillStyle = COLORS[1] ?? skin.primary;
     ctx.fillText(score.toLocaleString(), px, y);
 
     // LÍNEAS
@@ -320,7 +321,7 @@ export function createTetrisEngine(
     ctx.fillText("LÍNEAS", px, y);
     y += 24;
     ctx.font = "bold 24px monospace";
-    ctx.fillStyle = "#ffd54f";
+    ctx.fillStyle = COLORS[2] ?? skin.accent;
     ctx.fillText(String(lines), px, y);
 
     // NIVEL
@@ -330,7 +331,7 @@ export function createTetrisEngine(
     ctx.fillText("NIVEL", px, y);
     y += 24;
     ctx.font = "bold 24px monospace";
-    ctx.fillStyle = "#81c784";
+    ctx.fillStyle = COLORS[4] ?? skin.secondary;
     ctx.fillText(String(level), px, y);
 
     // SIGUIENTE (next piece preview)

@@ -7,6 +7,7 @@ import { saveScore, incrementPlay } from "@/lib/games-client";
 import type { GameWithStats } from "@/lib/games-data";
 import AsteroidsGame from "./games/asteroids-game";
 import TetrisGame from "./games/tetris-game";
+import { SKIN_LIST, SKINS, skinCssVars, type SkinId } from "@/lib/games/skins";
 
 export default function GamePlayer({ game }: { game: GameWithStats }) {
   const router = useRouter();
@@ -30,6 +31,9 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
   // Asteroids state
   const [finalScore, setFinalScore] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
+
+  // Player-chosen skin (default "clasico"). Applies to engines and mock arena.
+  const [skin, setSkin] = useState<SkinId>("clasico");
 
   const displayScore = isEngine ? finalScore : score;
 
@@ -107,6 +111,25 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
           )}
         </div>
         <div className="hud-actions">
+          <fieldset
+            className="skin-picker"
+            role="radiogroup"
+            aria-label="Apariencia del juego"
+          >
+            <legend className="skin-picker-legend">Skin</legend>
+            {SKIN_LIST.map((s) => (
+              <label key={s.id} className="skin-option" title={s.label}>
+                <input
+                  type="radio"
+                  name="skin"
+                  value={s.id}
+                  checked={skin === s.id}
+                  onChange={() => setSkin(s.id)}
+                />
+                <span>{s.label}</span>
+              </label>
+            ))}
+          </fieldset>
           <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
             {paused ? "REANUDAR" : "PAUSA"}
           </button>
@@ -130,16 +153,21 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
               paused={paused}
               onGameOver={handleEngineGameOver}
               restartKey={restartKey}
+              skin={skin}
             />
           ) : isTetris ? (
             <TetrisGame
               paused={paused}
               onGameOver={handleEngineGameOver}
               restartKey={restartKey}
+              skin={skin}
             />
           ) : (
             <>
-              <div className="game-arena">
+              <div
+                className={`game-arena${skin !== "clasico" ? ` game-arena--${skin}` : ""}`}
+                style={skinCssVars(SKINS[skin])}
+              >
                 <div className="grid-floor" />
                 <div className="enemy e1" />
                 <div className="enemy e2" />

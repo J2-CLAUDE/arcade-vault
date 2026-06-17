@@ -5,14 +5,21 @@ import {
   createTetrisEngine,
   type EngineHandle,
 } from "@/lib/games/tetris/engine";
+import { SKINS, type SkinId } from "@/lib/games/skins";
 
 interface Props {
   paused: boolean;
   onGameOver: (score: number) => void;
   restartKey: number;
+  skin: SkinId;
 }
 
-export default function TetrisGame({ paused, onGameOver, restartKey }: Props) {
+export default function TetrisGame({
+  paused,
+  onGameOver,
+  restartKey,
+  skin,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<EngineHandle | null>(null);
   const onGameOverRef = useRef(onGameOver);
@@ -23,7 +30,8 @@ export default function TetrisGame({ paused, onGameOver, restartKey }: Props) {
     onGameOverRef.current = onGameOver;
   });
 
-  // Mount / unmount — create engine once, destroy on cleanup
+  // Mount / recreate — rebuild the engine on skin change so the new palette
+  // takes effect (engines read their palette once, at construction).
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -32,6 +40,7 @@ export default function TetrisGame({ paused, onGameOver, restartKey }: Props) {
 
     const engine = createTetrisEngine(ctx, {
       onGameOver: (score) => onGameOverRef.current(score),
+      skin: SKINS[skin],
     });
     engineRef.current = engine;
     engine.start();
@@ -40,7 +49,7 @@ export default function TetrisGame({ paused, onGameOver, restartKey }: Props) {
       engine.destroy();
       engineRef.current = null;
     };
-  }, []);
+  }, [skin]);
 
   // Pause / resume
   useEffect(() => {

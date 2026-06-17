@@ -5,17 +5,20 @@ import {
   createAsteroidsEngine,
   type EngineHandle,
 } from "@/lib/games/asteroids/engine";
+import { SKINS, type SkinId } from "@/lib/games/skins";
 
 interface Props {
   paused: boolean;
   onGameOver: (score: number) => void;
   restartKey: number;
+  skin: SkinId;
 }
 
 export default function AsteroidsGame({
   paused,
   onGameOver,
   restartKey,
+  skin,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<EngineHandle | null>(null);
@@ -27,7 +30,8 @@ export default function AsteroidsGame({
     onGameOverRef.current = onGameOver;
   });
 
-  // Mount / unmount — create engine once, destroy on cleanup
+  // Mount / recreate — rebuild the engine on skin change so the new palette
+  // takes effect (engines read their palette once, at construction).
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -36,6 +40,7 @@ export default function AsteroidsGame({
 
     const engine = createAsteroidsEngine(ctx, {
       onGameOver: (score) => onGameOverRef.current(score),
+      skin: SKINS[skin],
     });
     engineRef.current = engine;
     engine.start();
@@ -44,7 +49,7 @@ export default function AsteroidsGame({
       engine.destroy();
       engineRef.current = null;
     };
-  }, []);
+  }, [skin]);
 
   // Pause / resume — resume() is a no-op if rAF is already running (safe on mount)
   useEffect(() => {

@@ -1022,6 +1022,63 @@ a {
 .hud-actions {
   display: flex;
   gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Skin selector (accessible radiogroup) */
+.skin-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  background: var(--bg-3);
+}
+.skin-picker-legend {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 6px 0 2px;
+}
+.skin-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.skin-option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.skin-option span {
+  font-family: var(--pixel);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+  padding: 5px 9px;
+  border: 1px solid transparent;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    text-shadow 0.15s;
+}
+.skin-option input:checked + span {
+  color: var(--cyan);
+  border-color: var(--cyan);
+  text-shadow: 0 0 6px rgba(0, 245, 255, 0.5);
+}
+.skin-option:hover span {
+  color: var(--ink);
+}
+.skin-option input:focus-visible + span {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
 }
 
 .crt {
@@ -1193,6 +1250,61 @@ a {
   50% {
     transform: translate(20px, 10px);
   }
+}
+
+/* ---- Mock-arena skins ----
+   The arena reads skin tokens from CSS variables. `clasico` (default) keeps
+   the exact original look: cyan grid/ship, magenta + yellow enemies, no glow.
+   `--neon` and `--retro` modifier classes (set by the player) override the
+   tokens. All three are tuned to stay legible on the dark base background. */
+.game-arena {
+  --arena-base: #0a0030;
+  --arena-grid: rgba(0, 245, 255, 0.4);
+  --arena-ship: var(--cyan);
+  --arena-enemy-a: var(--magenta);
+  --arena-enemy-b: var(--yellow);
+  --arena-glow: 8px;
+}
+.game-arena--neon {
+  --arena-base: #120033;
+  --arena-grid: rgba(0, 245, 255, 0.55);
+  --arena-ship: var(--cyan);
+  --arena-enemy-a: var(--magenta);
+  --arena-enemy-b: var(--green);
+  --arena-glow: 14px;
+}
+.game-arena--retro {
+  --arena-base: #0b0a06;
+  --arena-grid: rgba(255, 179, 71, 0.28);
+  --arena-ship: #ffb347;
+  --arena-enemy-a: #bd6b4f;
+  --arena-enemy-b: #8fd96b;
+  --arena-glow: 0px;
+}
+
+/* Wire the tokens into the arena visuals (works for all three skins). */
+.game-arena {
+  background:
+    radial-gradient(circle at 50% 50%, var(--arena-base) 0%, #000 70%), #000;
+}
+.game-arena .grid-floor {
+  background:
+    linear-gradient(to right, var(--arena-grid) 1px, transparent 1px) 0 0/40px
+      40px,
+    linear-gradient(to bottom, var(--arena-grid) 1px, transparent 1px) 0 0/40px
+      40px;
+}
+.game-arena .player-ship {
+  border-bottom-color: var(--arena-ship);
+  filter: drop-shadow(0 0 var(--arena-glow) var(--arena-ship));
+}
+.game-arena .enemy {
+  background: var(--arena-enemy-a);
+  box-shadow: 0 0 var(--arena-glow) var(--arena-enemy-a);
+}
+.game-arena .e3 {
+  background: var(--arena-enemy-b);
+  box-shadow: 0 0 var(--arena-glow) var(--arena-enemy-b);
 }
 
 /* game over modal */
