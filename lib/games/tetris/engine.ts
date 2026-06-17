@@ -69,6 +69,11 @@ export interface EngineHandle {
   resume(): void;
   restart(): void;
   destroy(): void;
+  moveLeft(): void;
+  moveRight(): void;
+  rotate(): void;
+  softDrop(): void;
+  hardDrop(): void;
 }
 
 export interface EngineCallbacks {
@@ -496,6 +501,31 @@ export function createTetrisEngine(
     destroy() {
       cancelAnimationFrame(animId);
       document.removeEventListener("keydown", onKeyDown);
+    },
+
+    moveLeft() {
+      if (paused || gameOver) return;
+      if (!collide(current.shape, current.x - 1, current.y)) current.x--;
+    },
+
+    moveRight() {
+      if (paused || gameOver) return;
+      if (!collide(current.shape, current.x + 1, current.y)) current.x++;
+    },
+
+    rotate() {
+      if (paused || gameOver) return;
+      tryRotate();
+    },
+
+    softDrop() {
+      if (paused || gameOver) return;
+      softDrop();
+    },
+
+    hardDrop() {
+      if (paused || gameOver) return;
+      hardDrop();
     },
   };
 }

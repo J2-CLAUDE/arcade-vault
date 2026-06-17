@@ -1,6 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useLayoutEffect } from "react";
+import {
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useImperativeHandle,
+  type Ref,
+} from "react";
 import {
   createTetrisEngine,
   type EngineHandle,
@@ -12,6 +18,7 @@ interface Props {
   onGameOver: (score: number) => void;
   restartKey: number;
   skin: SkinId;
+  ref?: Ref<EngineHandle>;
 }
 
 export default function TetrisGame({
@@ -19,11 +26,25 @@ export default function TetrisGame({
   onGameOver,
   restartKey,
   skin,
+  ref,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<EngineHandle | null>(null);
   const onGameOverRef = useRef(onGameOver);
   const restartKeyRef = useRef(restartKey);
+
+  useImperativeHandle(ref, () => ({
+    start: () => engineRef.current?.start(),
+    pause: () => engineRef.current?.pause(),
+    resume: () => engineRef.current?.resume(),
+    restart: () => engineRef.current?.restart(),
+    destroy: () => engineRef.current?.destroy(),
+    moveLeft: () => engineRef.current?.moveLeft(),
+    moveRight: () => engineRef.current?.moveRight(),
+    rotate: () => engineRef.current?.rotate(),
+    softDrop: () => engineRef.current?.softDrop(),
+    hardDrop: () => engineRef.current?.hardDrop(),
+  }));
 
   // Keep callback ref in sync without triggering effects
   useLayoutEffect(() => {

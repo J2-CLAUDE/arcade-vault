@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Press_Start_2P, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/session-provider";
@@ -16,6 +16,12 @@ const jetBrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0a0a0a",
+};
 
 export const metadata: Metadata = {
   title: "Arcade Vault",

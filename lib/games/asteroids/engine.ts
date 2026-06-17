@@ -66,6 +66,10 @@ export interface EngineHandle {
   resume(): void;
   restart(): void;
   destroy(): void;
+  setRotateLeft(active: boolean): void;
+  setRotateRight(active: boolean): void;
+  setThrust(active: boolean): void;
+  fire(): void;
 }
 
 export interface EngineCallbacks {
@@ -642,6 +646,9 @@ export function createAsteroidsEngine(
       rafId = requestAnimationFrame(loop);
     },
     pause() {
+      keys["ArrowLeft"] = false;
+      keys["ArrowRight"] = false;
+      keys["ArrowUp"] = false;
       if (rafId !== null) {
         cancelAnimationFrame(rafId);
         rafId = null;
@@ -676,6 +683,22 @@ export function createAsteroidsEngine(
       }
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+    },
+
+    setRotateLeft(active: boolean) {
+      keys["ArrowLeft"] = active;
+    },
+
+    setRotateRight(active: boolean) {
+      keys["ArrowRight"] = active;
+    },
+
+    setThrust(active: boolean) {
+      keys["ArrowUp"] = active;
+    },
+
+    fire() {
+      justPressed["Space"] = true;
     },
   };
 }

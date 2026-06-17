@@ -1,6 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useLayoutEffect } from "react";
+import {
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useImperativeHandle,
+  type Ref,
+} from "react";
 import {
   createAsteroidsEngine,
   type EngineHandle,
@@ -12,6 +18,7 @@ interface Props {
   onGameOver: (score: number) => void;
   restartKey: number;
   skin: SkinId;
+  ref?: Ref<EngineHandle>;
 }
 
 export default function AsteroidsGame({
@@ -19,11 +26,26 @@ export default function AsteroidsGame({
   onGameOver,
   restartKey,
   skin,
+  ref,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<EngineHandle | null>(null);
   const onGameOverRef = useRef(onGameOver);
   const restartKeyRef = useRef(restartKey);
+
+  useImperativeHandle(ref, () => ({
+    start: () => engineRef.current?.start(),
+    pause: () => engineRef.current?.pause(),
+    resume: () => engineRef.current?.resume(),
+    restart: () => engineRef.current?.restart(),
+    destroy: () => engineRef.current?.destroy(),
+    setRotateLeft: (active: boolean) =>
+      engineRef.current?.setRotateLeft(active),
+    setRotateRight: (active: boolean) =>
+      engineRef.current?.setRotateRight(active),
+    setThrust: (active: boolean) => engineRef.current?.setThrust(active),
+    fire: () => engineRef.current?.fire(),
+  }));
 
   // Keep the callback ref in sync after every render, outside of the render phase
   useLayoutEffect(() => {

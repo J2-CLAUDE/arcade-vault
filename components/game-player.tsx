@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "./session-provider";
 import { saveScore, incrementPlay } from "@/lib/games-client";
 import type { GameWithStats } from "@/lib/games-data";
 import AsteroidsGame from "./games/asteroids-game";
 import TetrisGame from "./games/tetris-game";
+import TouchControls from "./games/touch-controls";
 import { SKIN_LIST, SKINS, skinCssVars, type SkinId } from "@/lib/games/skins";
+import type { EngineHandle as TetrisHandle } from "@/lib/games/tetris/engine";
+import type { EngineHandle as AsteroidsHandle } from "@/lib/games/asteroids/engine";
 
 export default function GamePlayer({ game }: { game: GameWithStats }) {
   const router = useRouter();
@@ -34,6 +37,10 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
 
   // Player-chosen skin (default "clasico"). Applies to engines and mock arena.
   const [skin, setSkin] = useState<SkinId>("clasico");
+
+  // Engine handles exposed by the game wrappers — used by TouchControls
+  const tetrisEngineRef = useRef<TetrisHandle | null>(null);
+  const asteroidsEngineRef = useRef<AsteroidsHandle | null>(null);
 
   const displayScore = isEngine ? finalScore : score;
 
@@ -154,6 +161,7 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
               onGameOver={handleEngineGameOver}
               restartKey={restartKey}
               skin={skin}
+              ref={asteroidsEngineRef}
             />
           ) : isTetris ? (
             <TetrisGame
@@ -161,6 +169,7 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
               onGameOver={handleEngineGameOver}
               restartKey={restartKey}
               skin={skin}
+              ref={tetrisEngineRef}
             />
           ) : (
             <>
@@ -200,6 +209,10 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
             </>
           )}
         </div>
+        {isAsteroids && (
+          <TouchControls game="asteroids" engine={asteroidsEngineRef} />
+        )}
+        {isTetris && <TouchControls game="tetris" engine={tetrisEngineRef} />}
         <div className="crt-bottom">
           <span className="led">SEÑAL OK</span>
           <span>{game.title ?? ""} · CRT-83 · 60 HZ</span>

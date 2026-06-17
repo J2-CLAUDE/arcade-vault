@@ -2948,3 +2948,89 @@ a {
 .term-body .caret {
   animation: blink 1s steps(1) infinite;
 }
+
+/* ===== TOUCH CONTROLS (spec 08) ===== */
+/* Hidden by default — only shown on coarse-pointer (touch) devices. */
+.touch-controls {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .touch-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 14px 0 2px;
+    touch-action: none;
+  }
+
+  .tc-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 56px;
+    min-height: 56px;
+    padding: 8px 14px;
+    background: rgba(0, 245, 255, 0.07);
+    border: 1px solid rgba(0, 245, 255, 0.4);
+    color: var(--cyan);
+    font-family: var(--pixel);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+    transition:
+      background 60ms,
+      box-shadow 60ms;
+  }
+
+  .tc-btn:active {
+    background: rgba(0, 245, 255, 0.22);
+    box-shadow:
+      0 0 14px rgba(0, 245, 255, 0.5),
+      inset 0 0 6px rgba(0, 245, 255, 0.25);
+  }
+
+  /* Wider button — used for PROPULSAR (Asteroids) */
+  .tc-btn--wide {
+    flex: 1;
+    max-width: 140px;
+  }
+
+  /* Accent color — DROP (Tetris) and DISPARAR (Asteroids) */
+  .tc-btn--accent {
+    border-color: rgba(245, 255, 0, 0.5);
+    color: var(--yellow);
+  }
+
+  .tc-btn--accent:active {
+    background: rgba(245, 255, 0, 0.15);
+    box-shadow:
+      0 0 14px rgba(245, 255, 0, 0.5),
+      inset 0 0 6px rgba(245, 255, 0, 0.2);
+  }
+
+  .tc-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .tc-label {
+    font-size: 7px;
+    letter-spacing: 0.12em;
+    color: currentColor;
+    opacity: 0.65;
+    text-transform: uppercase;
+  }
+}
+
+/* Belt-and-suspenders: never show on fine-pointer devices. */
+@media (pointer: fine) {
+  .touch-controls {
+    display: none !important;
+  }
+}
