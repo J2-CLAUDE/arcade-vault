@@ -84,7 +84,9 @@ export default function TouchControls(props: Props) {
             aria-label="Rotar"
             {...tap(() => e.current?.rotate())}
           >
-            ▲
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4 L20 16 L4 16 Z" fill="currentColor" />
+            </svg>
           </button>
           <div className="dpad-corner" />
 
@@ -94,16 +96,22 @@ export default function TouchControls(props: Props) {
             aria-label="Mover izquierda"
             {...tap(() => e.current?.moveLeft())}
           >
-            ◀
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16 4 L16 20 L4 12 Z" fill="currentColor" />
+            </svg>
           </button>
-          <div className="dpad-center" />
+          <div className="dpad-hub" aria-hidden="true">
+            <span className="dpad-hub-gem" />
+          </div>
           <button
             type="button"
             className="dpad-btn"
             aria-label="Mover derecha"
             {...tap(() => e.current?.moveRight())}
           >
-            ▶
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 4 L20 12 L8 20 Z" fill="currentColor" />
+            </svg>
           </button>
 
           <div className="dpad-corner" />
@@ -113,7 +121,9 @@ export default function TouchControls(props: Props) {
             aria-label="Bajar (mantener)"
             {...repeat(() => e.current?.softDrop())}
           >
-            ▼
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 8 L20 8 L12 20 Z" fill="currentColor" />
+            </svg>
           </button>
           <div className="dpad-corner" />
         </div>
@@ -126,7 +136,7 @@ export default function TouchControls(props: Props) {
             aria-label="Hard drop"
             {...tap(() => e.current?.hardDrop())}
           >
-            B
+            <span className="ab-ring" aria-hidden="true" />B
           </button>
           <button
             type="button"
@@ -134,7 +144,7 @@ export default function TouchControls(props: Props) {
             aria-label="Rotar"
             {...tap(() => e.current?.rotate())}
           >
-            A
+            <span className="ab-ring" aria-hidden="true" />A
           </button>
         </div>
       </div>
@@ -157,7 +167,9 @@ export default function TouchControls(props: Props) {
               () => e.current?.setThrust(false),
             )}
           >
-            ▲
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4 L20 16 L4 16 Z" fill="currentColor" />
+            </svg>
           </button>
           <div className="dpad-corner" />
 
@@ -170,9 +182,13 @@ export default function TouchControls(props: Props) {
               () => e.current?.setRotateLeft(false),
             )}
           >
-            ◀
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16 4 L16 20 L4 12 Z" fill="currentColor" />
+            </svg>
           </button>
-          <div className="dpad-center" />
+          <div className="dpad-hub" aria-hidden="true">
+            <span className="dpad-hub-gem" />
+          </div>
           <button
             type="button"
             className="dpad-btn"
@@ -182,11 +198,13 @@ export default function TouchControls(props: Props) {
               () => e.current?.setRotateRight(false),
             )}
           >
-            ▶
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 4 L20 12 L8 20 Z" fill="currentColor" />
+            </svg>
           </button>
 
           <div className="dpad-corner" />
-          {/* ▼ has no function in Asteroids */}
+          {/* down has no function in Asteroids — visible inert slot keeps the cross shape */}
           <div className="dpad-btn dpad-btn--inert" aria-hidden="true" />
           <div className="dpad-corner" />
         </div>
@@ -202,7 +220,7 @@ export default function TouchControls(props: Props) {
               () => e.current?.setThrust(false),
             )}
           >
-            B
+            <span className="ab-ring" aria-hidden="true" />B
           </button>
           <button
             type="button"
@@ -210,7 +228,7 @@ export default function TouchControls(props: Props) {
             aria-label="Disparar"
             {...tap(() => e.current?.fire())}
           >
-            A
+            <span className="ab-ring" aria-hidden="true" />A
           </button>
         </div>
       </div>

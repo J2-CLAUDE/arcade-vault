@@ -146,4 +146,8 @@ Project-level subagents live in `.claude/agents/`.
 
 Decides which new retro game fits the Arcade Vault catalog. Invoke it when evaluating what game to add next — it reasons about category gaps, color balance, theme fit (neón/CRT, Spanish UI), and motor feasibility (mock ticker vs. real `EngineHandle` canvas engine). It does **not** write specs or app code.
 
-**Memory:** reads and appends to `references/game-suggestions-todo.md` at every invocation — will not re-suggest games already logged there.
+**Memory:**
+
+reads and appends to `references/game-suggestions-todo.md` at every invocation — will not re-suggest games already logged there.
+
+game-jam agent: 1 juego, 2 propuestas de spec alternativas a elegir
