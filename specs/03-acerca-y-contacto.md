@@ -1,6 +1,6 @@
 # Spec 03 — Página "Acerca de" + envío de correo de contacto
 
-**Estado:** Aprobado
+**Estado:** Implementado
 **Fecha:** 2026-06-15
 **Dependencias:** Spec 01 (tema/CSS base, `lib/data.ts`, nav, sesión) · Spec 02 (Home, nav reorganizado con "Acerca de" como placeholder inerte)
 **Objetivo (una frase):** Portar la página "Acerca de" del prototipo (`references/templates/home-about/about.jsx`) a la ruta `/acerca` en Next.js 16, con un formulario de contacto que envía correos reales vía Resend usando un Server Action.

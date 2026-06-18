@@ -1,6 +1,6 @@
 # SPEC 08 — Controles táctiles para móvil en Tetris y Asteroids
 
-> **Estado:** Aprobado · **Depende de:** Spec 05 (motor Asteroids) + Spec 07 (motor Tetris) · **Fecha:** 2026-06-17
+> **Estado:** Implementado · **Depende de:** Spec 05 (motor Asteroids) + Spec 07 (motor Tetris) · **Fecha:** 2026-06-17
 > **Objetivo:** Permitir jugar Tetris y Asteroids en pantallas táctiles mediante métodos de acción públicos en cada motor y una barra de botones en pantalla bajo el canvas, visible solo en dispositivos de puntero grueso y funcional en orientación vertical.
 
 ## 1. Por qué este spec existe

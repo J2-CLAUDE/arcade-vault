@@ -1,6 +1,6 @@
 # SPEC 07 — Motor real de Tetris en el reproductor (rename `caida → tetris`)
 
-> **Estado:** Aprobado · **Depende de:** Spec 05 (patrón de motor) + Spec 06 (Supabase + 4 pantallas) · **Fecha:** 2026-06-16
+> **Estado:** Implementado · **Depende de:** Spec 05 (patrón de motor) + Spec 06 (Supabase + 4 pantallas) · **Fecha:** 2026-06-16
 > **Objetivo:** Sustituir el ticker mock del reproductor por un motor canvas real de **Tetris** —portado desde `references/started-games/03-tetris/game.js`, conservando la pieza no estándar "tuerca"— **solo para el juego renombrado `tetris`** (antes `caida`), con HUD y preview de la siguiente pieza dibujados dentro del canvas, controles de teclado y guardado por el flujo Supabase existente.
 
 ---

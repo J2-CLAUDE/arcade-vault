@@ -1,6 +1,6 @@
 # SPEC 05 — Motor real de Asteroids en el reproductor
 
-> **Estado:** Aprobado · **Depende de:** Spec 01 (reproductor `/jugar/[id]`, `components/game-player.tsx`, `useSession().saveScore`, tema CRT) · **Fecha:** 2026-06-15
+> **Estado:** Implementado · **Depende de:** Spec 01 (reproductor `/jugar/[id]`, `components/game-player.tsx`, `useSession().saveScore`, tema CRT) · **Fecha:** 2026-06-15
 > **Objetivo:** Sustituir el ticker mock del reproductor por un motor canvas real de **Asteroids** —portado desde `references/started-games/02-asteroids/game.js`— **solo para el juego `asteroids`** (antes `rocas`), con HUD dibujado en el canvas, power-up 3x, controles de teclado y guardado de puntuación por el flujo existente; además renombra la entrada de catálogo `rocas → asteroids`.
 
 ---

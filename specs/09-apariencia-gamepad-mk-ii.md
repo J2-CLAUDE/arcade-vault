@@ -1,6 +1,6 @@
 # SPEC 09 — Apariencia del gamepad MK-II (controles táctiles)
 
-> **Estado:** Aprobado · **Depende de:** Spec 08 (controles táctiles) · **Fecha:** 2026-06-17
+> **Estado:** Implementado · **Depende de:** Spec 08 (controles táctiles) · **Fecha:** 2026-06-17
 > **Objetivo:** Reestilar la barra de controles táctiles existente para que reproduzca el gamepad neón "MK-II" de `references/gamepad-assets/` (chasis con degradado y brillos, D-pad en cruz con hub y LED diamante pulsante, flechas SVG con glow, y botones A/B circulares con gloss y anillo punteado), **sin alterar el cableado ni la lógica de input**.
 
 ## 1. Por qué este spec existe
