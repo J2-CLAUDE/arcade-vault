@@ -11,6 +11,49 @@
 
 export type SkinId = "clasico" | "neon" | "retro";
 
+/**
+ * Frogger-specific palette. The generic SkinPalette tokens (ship/pieces/flame)
+ * don't map cleanly onto Frogger's entities, so each skin carries a dedicated
+ * `frogger` block read by `components/games/frogger-game.tsx`. Every color must
+ * stay legible on the dark zone backgrounds (river / road / safe).
+ */
+export interface FroggerPalette {
+  /** The player frog body. */
+  frog: string;
+  /** Frog legs shown mid-jump. */
+  frogLeg: string;
+  /** Frog eye sclera. */
+  frogEye: string;
+  /** Three car body colors, cycled per road lane. */
+  cars: [string, string, string];
+  /** Truck body / cab / wheel. */
+  truckBody: string;
+  truckCab: string;
+  wheel: string;
+  /** Log body + grain stroke. */
+  log: string;
+  logGrain: string;
+  /** Turtle shell (visible) / submerged tint / shell detail stroke. */
+  turtle: string;
+  turtleSubmerged: string;
+  turtleDetail: string;
+  /** Zone background fills. */
+  river: string;
+  road: string;
+  safe: string;
+  goalRow: string;
+  /** Lane divider dashes. */
+  laneDash: string;
+  /** Goal slot: empty fill / filled fill / empty stroke / filled stroke. */
+  goalEmpty: string;
+  goalFilled: string;
+  goalStrokeEmpty: string;
+  goalStrokeFilled: string;
+  /** HUD text + level accent. */
+  hudText: string;
+  hudLevel: string;
+}
+
 export interface SkinPalette {
   id: SkinId;
   /** Human label for the selector UI. */
@@ -34,6 +77,8 @@ export interface SkinPalette {
    * Index 0 is unused (kept null to mirror the engine's 1-based scheme).
    */
   pieces: (string | null)[];
+  /** Frogger-specific palette block. */
+  frogger: FroggerPalette;
   /** Effect flags. */
   glow: boolean;
   scanlines: boolean;
@@ -64,6 +109,32 @@ export const SKINS: Record<SkinId, SkinPalette> = {
       "#ffb74d", // L - orange
       "#9e9e9e", // N - tuerca (gris metálico)
     ],
+    // Reproduces the current hardcoded Frogger look exactly.
+    frogger: {
+      frog: "#aaff00",
+      frogLeg: "#66cc22",
+      frogEye: "#ffffff",
+      cars: ["#cc2244", "#e67e22", "#2255cc"],
+      truckBody: "#555555",
+      truckCab: "#888888",
+      wheel: "#222222",
+      log: "#7a4a1a",
+      logGrain: "#a06428",
+      turtle: "#2a7a1a",
+      turtleSubmerged: "#1a4a1a",
+      turtleDetail: "#1a5a10",
+      river: "#001230",
+      road: "#111111",
+      safe: "#0a1a08",
+      goalRow: "#1a2e10",
+      laneDash: "rgba(255,255,100,0.15)",
+      goalEmpty: "#0d2008",
+      goalFilled: "#1a4a10",
+      goalStrokeEmpty: "rgba(255,207,58,0.35)",
+      goalStrokeFilled: "#ffcf3a",
+      hudText: "#ffffff",
+      hudLevel: "#f5ff00",
+    },
     glow: false,
     scanlines: true,
   },
@@ -91,6 +162,32 @@ export const SKINS: Record<SkinId, SkinPalette> = {
       "#ff9e1b", // L - amber-neon
       "#c77dff", // N - violet
     ],
+    // Synthwave: bright lime frog with glow, neon vehicles, cyan turtles.
+    frogger: {
+      frog: "#aaff00",
+      frogLeg: "#00ff88",
+      frogEye: "#e6e9ff",
+      cars: ["#ff006e", "#f5ff00", "#00f5ff"],
+      truckBody: "#c77dff",
+      truckCab: "#ff9e1b",
+      wheel: "#1a0030",
+      log: "#ff9e1b",
+      logGrain: "#ffd27a",
+      turtle: "#00f5ff",
+      turtleSubmerged: "#0a4a55",
+      turtleDetail: "#00c2cc",
+      river: "#000830",
+      road: "#0a0014",
+      safe: "#04140a",
+      goalRow: "#0a1e10",
+      laneDash: "rgba(245,255,0,0.25)",
+      goalEmpty: "#0a1e08",
+      goalFilled: "#0e3a10",
+      goalStrokeEmpty: "rgba(0,245,255,0.4)",
+      goalStrokeFilled: "#f5ff00",
+      hudText: "#e6e9ff",
+      hudLevel: "#f5ff00",
+    },
     glow: true,
     scanlines: true,
   },
@@ -119,6 +216,32 @@ export const SKINS: Record<SkinId, SkinPalette> = {
       "#c98a3f", // L - burnt orange
       "#8a8164", // N - drab
     ],
+    // Dim CGA-ish phosphor: muted green frog, orange/brown cars, beige logs.
+    frogger: {
+      frog: "#8fd96b",
+      frogLeg: "#5f9e45",
+      frogEye: "#e2c98a",
+      cars: ["#c98a3f", "#bd6b4f", "#d9a441"],
+      truckBody: "#8a8164",
+      truckCab: "#b08968",
+      wheel: "#2a2418",
+      log: "#b08968",
+      logGrain: "#8a6a48",
+      turtle: "#7fa05a",
+      turtleSubmerged: "#3d4a30",
+      turtleDetail: "#5f7a42",
+      river: "#1a2a4a",
+      road: "#161310",
+      safe: "#13190e",
+      goalRow: "#1c2412",
+      laneDash: "rgba(226,201,138,0.14)",
+      goalEmpty: "#171f0d",
+      goalFilled: "#2a3a18",
+      goalStrokeEmpty: "rgba(232,193,79,0.3)",
+      goalStrokeFilled: "#e8c14f",
+      hudText: "#e2c98a",
+      hudLevel: "#e8c14f",
+    },
     glow: false,
     scanlines: true,
   },

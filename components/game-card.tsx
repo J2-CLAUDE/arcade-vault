@@ -30,7 +30,9 @@ export default function GameCard({ game }: { game: GameWithStats }) {
       ? "btn magenta"
       : game.color === "yellow"
         ? "btn yellow"
-        : "btn";
+        : game.color === "lime"
+          ? "btn lime"
+          : "btn";
 
   return (
     <div

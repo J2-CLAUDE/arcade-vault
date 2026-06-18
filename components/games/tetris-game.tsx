@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  memo,
   useRef,
   useEffect,
   useLayoutEffect,
@@ -22,13 +23,7 @@ interface Props {
   ref?: Ref<EngineHandle>;
 }
 
-export default function TetrisGame({
-  paused,
-  onGameOver,
-  restartKey,
-  skin,
-  ref,
-}: Props) {
+function TetrisGame({ paused, onGameOver, restartKey, skin, ref }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<EngineHandle | null>(null);
   const onGameOverRef = useRef(onGameOver);
@@ -117,3 +112,5 @@ export default function TetrisGame({
     />
   );
 }
+
+export default memo(TetrisGame);

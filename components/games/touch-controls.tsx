@@ -14,7 +14,19 @@ type AsteroidsProps = {
   engine: React.RefObject<AsteroidsHandle | null>;
 };
 
-type Props = TetrisProps | AsteroidsProps;
+type FroggerDirection = "up" | "down" | "left" | "right";
+
+type FroggerProps = {
+  game: "frogger";
+  /**
+   * Frogger has no `EngineHandle` (it reads `document` keydown directly), so
+   * the d-pad reports the pressed direction to the parent, which dispatches a
+   * synthetic keyboard event. Tap-to-jump semantics: fires once on pointerdown.
+   */
+  onDirection: (dir: FroggerDirection) => void;
+};
+
+type Props = TetrisProps | AsteroidsProps | FroggerProps;
 
 export default function TouchControls(props: Props) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -230,6 +242,66 @@ export default function TouchControls(props: Props) {
           >
             <span className="ab-ring" aria-hidden="true" />A
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (props.game === "frogger") {
+    const jump = props.onDirection;
+    return (
+      <div className="gamepad gamepad--frogger" aria-label="Gamepad Frogger">
+        {/* 4-way D-pad — every jump is a single tap (fires on pointerdown) */}
+        <div className="gamepad-dpad gamepad-dpad--frogger">
+          <div className="dpad-corner" />
+          <button
+            type="button"
+            className="dpad-btn"
+            aria-label="Saltar arriba"
+            {...tap(() => jump("up"))}
+          >
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4 L20 16 L4 16 Z" fill="currentColor" />
+            </svg>
+          </button>
+          <div className="dpad-corner" />
+
+          <button
+            type="button"
+            className="dpad-btn"
+            aria-label="Saltar izquierda"
+            {...tap(() => jump("left"))}
+          >
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16 4 L16 20 L4 12 Z" fill="currentColor" />
+            </svg>
+          </button>
+          <div className="dpad-hub" aria-hidden="true">
+            <span className="dpad-hub-gem" />
+          </div>
+          <button
+            type="button"
+            className="dpad-btn"
+            aria-label="Saltar derecha"
+            {...tap(() => jump("right"))}
+          >
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 4 L20 12 L8 20 Z" fill="currentColor" />
+            </svg>
+          </button>
+
+          <div className="dpad-corner" />
+          <button
+            type="button"
+            className="dpad-btn"
+            aria-label="Saltar abajo"
+            {...tap(() => jump("down"))}
+          >
+            <svg className="dp-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 8 L20 8 L12 20 Z" fill="currentColor" />
+            </svg>
+          </button>
+          <div className="dpad-corner" />
         </div>
       </div>
     );
