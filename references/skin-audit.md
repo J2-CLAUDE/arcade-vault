@@ -1,6 +1,6 @@
 # Auditoría de skins — Arcade Vault
 
-Última actualización: **2026-06-17**
+Última actualización: **2026-06-18**
 Skins objetivo por juego: `clasico` (default) · `neon` · `retro`, todas seleccionables
 por el jugador en runtime y legibles en dark mode (`--bg #0a0a0f`).
 
@@ -50,8 +50,28 @@ crítico sobre el fondo de ese skin).
 | 6   | asteroids     | real  | ✅ blanco/cyan idénticos    | ✅ nave cyan, balas glow        | ✅ nave ámbar, partículas ámbar |
 | 7   | ranaria       | mock  | ✅ original                 | ✅                              | ✅                              |
 | 8   | duelo-pixel   | mock  | ✅ original                 | ✅                              | ✅                              |
+| 9   | frogger       | real  | ✅ rana lima/coches RGB     | ✅ rana+coches+tortugas glow    | ✅ rana/coches CGA mate, sin glow |
 
 Todos los juegos: 3 skins seleccionables (selector compartido en el player).
+
+### Frogger (añadido 2026-06-18)
+
+Frogger es el tercer motor canvas real (`components/games/frogger-game.tsx`, lienzo
+640×560, cuadrícula 16×14). Su paleta no encaja en los tokens genéricos
+(`ship`/`pieces`/`flame`), así que cada skin lleva un bloque dedicado
+`SKINS[*].frogger: FroggerPalette` (rana, patas, ojo, coches[3], camión, troncos,
+tortugas, zonas río/carretera/seguras, metas y texto del HUD). El wrapper recibe
+`skin: SkinId`, lee la paleta una vez por montaje y **recrea el bucle al cambiar de
+skin** (efecto con dependencia `[skin]`). El player resetea el HUD React de Frogger
+(score/vidas/nivel) en `handleSkinChange` para que no quede desincronizado.
+
+- **clasico**: reproduce exactamente el look hardcodeado previo (rana `#aaff00`,
+  coches `#cc2244`/`#e67e22`/`#2255cc`, camión `#555`, tronco `#7a4a1a`, tortuga
+  `#2a7a1a`, río `#001230`, carretera `#111`, HUD blanco).
+- **neon**: rana lima con glow, coches magenta/amarillo/cian, tortugas cian con
+  brillo, río `#000830`; `shadowBlur` activado en rana, coches y tortugas.
+- **retro**: rana verde apagada `#8fd96b`, coches ámbar/terracota estilo CGA,
+  troncos beige, río `#1a2a4a`, sin glow.
 
 ## Paletas finales
 
@@ -77,6 +97,12 @@ Ratio mínimo por skin (elemento más crítico):
 - **neon** (bg #05000f): mínimo 5.40 (magenta) — AA-text.
 - **retro** (bg #0b0a06): mínimo 5.07 (pieza terracota Z) — AA-text.
 
+Frogger (elemento más crítico sobre su fondo de zona más oscuro):
+
+- **clasico**: mínimo 13.30 (nivel amarillo sobre meta) — AA-text.
+- **neon**: mínimo 14.39 (tortuga cian sobre río `#000830`) — AA-text.
+- **retro**: mínimo 6.34 (coche ámbar sobre carretera `#161310`) — AA-text.
+
 Todos los textos del HUD y elementos de juego superan AA (≥4.5) en dark mode.
 
 ## Verificación de build
@@ -90,10 +116,11 @@ Todos los textos del HUD y elementos de juego superan AA (≥4.5) en dark mode.
 
 ## Archivos creados/cambiados
 
-- `lib/games/skins.ts` (nuevo)
+- `lib/games/skins.ts` (nuevo; ampliado con `FroggerPalette` el 2026-06-18)
 - `lib/games/tetris/engine.ts`
 - `lib/games/asteroids/engine.ts`
 - `components/games/tetris-game.tsx`
 - `components/games/asteroids-game.tsx`
+- `components/games/frogger-game.tsx` (skin añadido 2026-06-18)
 - `components/game-player.tsx`
 - `app/globals.css`

@@ -50,6 +50,15 @@ const PIECES: (number[][] | null)[] = [
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
+const CONTROL_HINTS = [
+  "← →  mover",
+  "↑/X  rotar",
+  "↓    bajar",
+  "␣    drop",
+] as const;
+
+const HUD_STAT_LABELS = ["SCORE", "LÍNEAS", "NIVEL"] as const;
+
 type PieceType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 type Board = number[][];
 
@@ -123,6 +132,36 @@ export function createTetrisEngine(
     HUD_H = 0; // unused in landscape
   }
   // ─────────────────────────────────────────────────────────────────────────
+  // Pre-computed HUD stat colors (avoids property lookup per frame)
+  const hudStatColors = [
+    COLORS[1] ?? skin.primary,
+    COLORS[2] ?? skin.accent,
+    COLORS[4] ?? skin.secondary,
+  ] as const;
+  // Pre-rasterized glow sprites per piece color (neon skin only).
+  // Baking shadowBlur into an OffscreenCanvas sprite eliminates ~200 GPU
+  // shadow-state changes per frame, down to 0.
+  const GLOW_PAD = blockGlow + 2;
+  const glowSprites: (OffscreenCanvas | null)[] = new Array(9).fill(null);
+  if (blockGlow) {
+    for (let i = 1; i <= 8; i++) {
+      const color = COLORS[i];
+      if (!color) continue;
+      const spriteSize = BLOCK + GLOW_PAD * 2;
+      const oc = new OffscreenCanvas(spriteSize, spriteSize);
+      const octx = oc.getContext("2d");
+      if (!octx) continue;
+      octx.shadowColor = color;
+      octx.shadowBlur = blockGlow;
+      octx.fillStyle = color;
+      octx.fillRect(GLOW_PAD + 1, GLOW_PAD + 1, BLOCK - 2, BLOCK - 2);
+      octx.shadowBlur = 0;
+      octx.fillStyle = "rgba(255,255,255,0.12)";
+      octx.fillRect(GLOW_PAD + 1, GLOW_PAD + 1, BLOCK - 2, 4);
+      glowSprites[i] = oc;
+    }
+  }
+
   let board!: Board;
   let current!: Piece;
   let next!: Piece;
@@ -136,6 +175,7 @@ export function createTetrisEngine(
   let dropAccum = 0;
   let dropInterval = 1000;
   let animId = 0;
+  let pauseDrawn = false;
 
   function createBoard(): Board {
     return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -267,25 +307,29 @@ export function createTetrisEngine(
     const color = COLORS[colorIndex];
     if (!color) return;
     ctx.globalAlpha = alpha;
-    if (blockGlow) {
-      ctx.shadowColor = color;
-      ctx.shadowBlur = blockGlow;
+    const sprite = blockGlow ? glowSprites[colorIndex] : null;
+    if (sprite) {
+      ctx.drawImage(
+        sprite,
+        pixelOffX + x * BLOCK - GLOW_PAD,
+        pixelOffY + y * BLOCK - GLOW_PAD,
+      );
+    } else {
+      ctx.fillStyle = color;
+      ctx.fillRect(
+        pixelOffX + x * size + 1,
+        pixelOffY + y * size + 1,
+        size - 2,
+        size - 2,
+      );
+      ctx.fillStyle = "rgba(255,255,255,0.12)";
+      ctx.fillRect(
+        pixelOffX + x * size + 1,
+        pixelOffY + y * size + 1,
+        size - 2,
+        4,
+      );
     }
-    ctx.fillStyle = color;
-    ctx.fillRect(
-      pixelOffX + x * size + 1,
-      pixelOffY + y * size + 1,
-      size - 2,
-      size - 2,
-    );
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "rgba(255,255,255,0.12)";
-    ctx.fillRect(
-      pixelOffX + x * size + 1,
-      pixelOffY + y * size + 1,
-      size - 2,
-      4,
-    );
     ctx.globalAlpha = 1;
   }
 
@@ -430,8 +474,7 @@ export function createTetrisEngine(
     ctx.fillStyle = "rgba(255,255,255,0.22)";
     ctx.font = "10px monospace";
     let cy = CANVAS_H - 112;
-    const hints = ["← →  mover", "↑/X  rotar", "↓    bajar", "␣    drop"];
-    for (const h of hints) {
+    for (const h of CONTROL_HINTS) {
       ctx.fillText(h, px, cy);
       cy += 18;
     }
@@ -463,34 +506,17 @@ export function createTetrisEngine(
     const statsWidth = previewX - 8;
     const colW = Math.floor(statsWidth / 3);
 
-    const statDefs = [
-      {
-        label: "SCORE",
-        value: score.toLocaleString(),
-        color: COLORS[1] ?? skin.primary,
-      },
-      {
-        label: "LÍNEAS",
-        value: String(lines),
-        color: COLORS[2] ?? skin.accent,
-      },
-      {
-        label: "NIVEL",
-        value: String(level),
-        color: COLORS[4] ?? skin.secondary,
-      },
-    ];
-
+    const statValues = [score.toLocaleString(), String(lines), String(level)];
     ctx.textAlign = "center";
-    statDefs.forEach((s, i) => {
+    for (let i = 0; i < 3; i++) {
       const cx = colW * i + Math.floor(colW / 2);
       ctx.font = "9px monospace";
       ctx.fillStyle = "rgba(255,255,255,0.45)";
-      ctx.fillText(s.label, cx, 22);
+      ctx.fillText(HUD_STAT_LABELS[i], cx, 22);
       ctx.font = "bold 16px monospace";
-      ctx.fillStyle = s.color;
-      ctx.fillText(s.value, cx, 46);
-    });
+      ctx.fillStyle = hudStatColors[i];
+      ctx.fillText(statValues[i], cx, 46);
+    }
 
     // Separator before preview
     ctx.strokeStyle = "rgba(255,255,255,0.1)";
@@ -550,6 +576,7 @@ export function createTetrisEngine(
     const dt = Math.min(rawDt, 50); // cap to avoid jumps after tab sleep
 
     if (!paused && !gameOver) {
+      pauseDrawn = false;
       dropAccum += dt;
       if (dropAccum >= dropInterval) {
         dropAccum = 0;
@@ -561,7 +588,10 @@ export function createTetrisEngine(
       }
     }
 
-    draw();
+    if (!paused || !pauseDrawn) {
+      draw();
+      if (paused) pauseDrawn = true;
+    }
     if (gameOver) return; // RAF was already cancelled in spawn()
     animId = requestAnimationFrame(loop);
   }
@@ -610,6 +640,7 @@ export function createTetrisEngine(
     paused = false;
     gameOver = false;
     gameOverFired = false;
+    pauseDrawn = false;
     dropInterval = 1000;
     dropAccum = 0;
     next = randomPiece();
@@ -632,6 +663,7 @@ export function createTetrisEngine(
 
     resume() {
       paused = false;
+      pauseDrawn = false;
       lastTime = performance.now(); // reset so dt doesn't spike
     },
 

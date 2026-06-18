@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useLayoutEffect,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "./session-provider";
 import { saveScore, incrementPlay } from "@/lib/games-client";
 import type { GameWithStats } from "@/lib/games-data";
 import AsteroidsGame from "./games/asteroids-game";
 import TetrisGame from "./games/tetris-game";
+import FroggerGame from "./games/frogger-game";
 import TouchControls from "./games/touch-controls";
 import { SKIN_LIST, SKINS, skinCssVars, type SkinId } from "@/lib/games/skins";
 import type { EngineHandle as TetrisHandle } from "@/lib/games/tetris/engine";
@@ -18,7 +25,8 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
 
   const isAsteroids = game.id === "asteroids";
   const isTetris = game.id === "tetris";
-  const isEngine = isAsteroids || isTetris; // real engine — HUD lives inside canvas
+  const isFrogger = game.id === "frogger";
+  const isEngine = isAsteroids || isTetris || isFrogger;
 
   // Shared state
   const [paused, setPaused] = useState(false);
@@ -31,9 +39,20 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
   const [lives] = useState(3);
   const level = Math.max(1, Math.floor(score / 2500) + 1);
 
-  // Asteroids state
+  // Asteroids / Tetris state
   const [finalScore, setFinalScore] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
+
+  // Frogger state — refs for 60fps values; DOM refs for direct HUD updates
+  const scoreRef = useRef(0);
+  const livesRef = useRef(3);
+  const levelRef = useRef(1);
+  const scoreEl = useRef<HTMLDivElement>(null);
+  const livesEl = useRef<HTMLDivElement>(null);
+  const levelEl = useRef<HTMLDivElement>(null);
+  // frogFinalScore is set once at game-over so the modal can read it during render
+  const [frogFinalScore, setFrogFinalScore] = useState(0);
+  const [gameKey, setGameKey] = useState(0);
 
   // Player-chosen skin (default "clasico"). Applies to engines and mock arena.
   const [skin, setSkin] = useState<SkinId>("clasico");
@@ -42,13 +61,82 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
   const tetrisEngineRef = useRef<TetrisHandle | null>(null);
   const asteroidsEngineRef = useRef<AsteroidsHandle | null>(null);
 
-  const displayScore = isEngine ? finalScore : score;
+  const displayScore = isFrogger
+    ? frogFinalScore
+    : isEngine
+      ? finalScore
+      : score;
+
+  // After any React re-render, re-sync Frogger HUD DOM from refs so a pause/
+  // resume or other state change doesn't reset the displayed values.
+  useLayoutEffect(() => {
+    if (!isFrogger) return;
+    if (scoreEl.current)
+      scoreEl.current.textContent = scoreRef.current.toLocaleString("es-ES");
+    if (livesEl.current) {
+      const l = livesRef.current;
+      livesEl.current.innerHTML = Array.from({ length: 3 })
+        .map(
+          (_, i) =>
+            `<span style="color:${i < l ? "var(--green)" : "var(--ink-dim)"}">♥</span>`,
+        )
+        .join("");
+    }
+    if (levelEl.current)
+      levelEl.current.textContent = String(levelRef.current).padStart(2, "0");
+  });
+
+  const handleFrogScoreChange = useCallback((s: number) => {
+    scoreRef.current = s;
+    if (scoreEl.current)
+      scoreEl.current.textContent = s.toLocaleString("es-ES");
+  }, []);
+
+  const handleFrogLivesChange = useCallback((l: number) => {
+    livesRef.current = l;
+    if (livesEl.current) {
+      livesEl.current.innerHTML = Array.from({ length: 3 })
+        .map(
+          (_, i) =>
+            `<span style="color:${i < l ? "var(--green)" : "var(--ink-dim)"}">♥</span>`,
+        )
+        .join("");
+    }
+  }, []);
+
+  const handleFrogLevelChange = useCallback((l: number) => {
+    levelRef.current = l;
+    if (levelEl.current)
+      levelEl.current.textContent = String(l).padStart(2, "0");
+  }, []);
+
+  const handleFrogGameOver = useCallback((s: number) => {
+    scoreRef.current = s;
+    if (scoreEl.current)
+      scoreEl.current.textContent = s.toLocaleString("es-ES");
+    setFrogFinalScore(s);
+    setPaused(true);
+    setOver(true);
+  }, []);
 
   // Mobile full-screen: add is-playing to body so CSS can hide nav + footer
   useEffect(() => {
     document.body.classList.add("is-playing");
     return () => document.body.classList.remove("is-playing");
   }, []);
+
+  // Changing the skin restarts the Frogger canvas loop (the engine reads its
+  // palette once, at mount). Reset the React-side HUD here so the displayed
+  // score/lives/level don't go stale on a skin swap.
+  const handleSkinChange = (next: SkinId) => {
+    setSkin(next);
+    if (isFrogger) {
+      scoreRef.current = 0;
+      livesRef.current = 3;
+      levelRef.current = 1;
+      // useLayoutEffect will sync DOM on the re-render triggered by setSkin
+    }
+  };
 
   // Score ticker — mock only, stops when paused or game over
   useEffect(() => {
@@ -59,11 +147,10 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
     return () => clearInterval(t);
   }, [isEngine, over, paused]);
 
-  // Called by AsteroidsGame when the engine reaches gameover state
-  const handleEngineGameOver = (s: number) => {
+  const handleEngineGameOver = useCallback((s: number) => {
     setFinalScore(s);
     setOver(true);
-  };
+  }, []);
 
   const endGame = () => {
     if (isEngine) setPaused(true); // pause engine before showing modal
@@ -71,7 +158,14 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
   };
 
   const restart = () => {
-    if (isEngine) {
+    if (isFrogger) {
+      setGameKey((k) => k + 1);
+      scoreRef.current = 0;
+      livesRef.current = 3;
+      levelRef.current = 1;
+      setFrogFinalScore(0);
+      setPaused(false);
+    } else if (isEngine) {
       setRestartKey((k) => k + 1);
       setFinalScore(0);
       setPaused(false);
@@ -104,6 +198,31 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
               {user?.name ?? "INVITADO"}
             </div>
           </div>
+          {/* Frogger: live HUD — DOM updated directly via refs at 60fps */}
+          {isFrogger && (
+            <>
+              <div className="hud-stat">
+                <div className="l">Puntuación</div>
+                <div className="v" ref={scoreEl}>
+                  0
+                </div>
+              </div>
+              <div className="hud-stat lives">
+                <div className="l">Vidas</div>
+                <div className="v" ref={livesEl}>
+                  <span style={{ color: "var(--green)" }}>♥</span>
+                  <span style={{ color: "var(--green)" }}>♥</span>
+                  <span style={{ color: "var(--green)" }}>♥</span>
+                </div>
+              </div>
+              <div className="hud-stat level">
+                <div className="l">Nivel</div>
+                <div className="v" ref={levelEl}>
+                  01
+                </div>
+              </div>
+            </>
+          )}
           {/* Puntuación / Vidas / Nivel are shown only for mock ticker games;
               for engine games (asteroids, tetris) the HUD lives inside the canvas */}
           {!isEngine && (
@@ -137,7 +256,7 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
                   name="skin"
                   value={s.id}
                   checked={skin === s.id}
-                  onChange={() => setSkin(s.id)}
+                  onChange={() => handleSkinChange(s.id)}
                 />
                 <span>{s.label}</span>
               </label>
@@ -161,7 +280,17 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
       {/* CRT arena */}
       <div className="crt">
         <div className="crt-screen">
-          {isAsteroids ? (
+          {isFrogger ? (
+            <FroggerGame
+              key={gameKey}
+              paused={paused}
+              skin={skin}
+              onScoreChange={handleFrogScoreChange}
+              onLivesChange={handleFrogLivesChange}
+              onLevelChange={handleFrogLevelChange}
+              onGameOver={handleFrogGameOver}
+            />
+          ) : isAsteroids ? (
             <AsteroidsGame
               paused={paused}
               onGameOver={handleEngineGameOver}
@@ -227,6 +356,24 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
         <TouchControls game="asteroids" engine={asteroidsEngineRef} />
       )}
       {isTetris && <TouchControls game="tetris" engine={tetrisEngineRef} />}
+      {isFrogger && (
+        <TouchControls
+          game="frogger"
+          onDirection={(dir) => {
+            // Frogger has no EngineHandle — it reads `document` keydown by
+            // `e.code`. Dispatch the matching synthetic key so a tap jumps.
+            const code = {
+              up: "ArrowUp",
+              down: "ArrowDown",
+              left: "ArrowLeft",
+              right: "ArrowRight",
+            }[dir];
+            document.dispatchEvent(
+              new KeyboardEvent("keydown", { code, bubbles: true }),
+            );
+          }}
+        />
+      )}
 
       {/* Mobile meta strip — replaces HUD on coarse-pointer devices */}
       <div className="player-meta">
@@ -245,7 +392,7 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
                   name="skin-meta"
                   value={s.id}
                   checked={skin === s.id}
-                  onChange={() => setSkin(s.id)}
+                  onChange={() => handleSkinChange(s.id)}
                 />
                 <span>{s.label}</span>
               </label>

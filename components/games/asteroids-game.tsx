@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  memo,
   useRef,
   useEffect,
   useLayoutEffect,
@@ -21,13 +22,7 @@ interface Props {
   ref?: Ref<EngineHandle>;
 }
 
-export default function AsteroidsGame({
-  paused,
-  onGameOver,
-  restartKey,
-  skin,
-  ref,
-}: Props) {
+function AsteroidsGame({ paused, onGameOver, restartKey, skin, ref }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<EngineHandle | null>(null);
   const onGameOverRef = useRef(onGameOver);
@@ -98,3 +93,5 @@ export default function AsteroidsGame({
     />
   );
 }
+
+export default memo(AsteroidsGame);

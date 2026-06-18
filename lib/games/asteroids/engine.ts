@@ -49,6 +49,7 @@ function resolveColors(skin: SkinPalette): DrawColors {
   };
 }
 
+const TWO_PI = Math.PI * 2;
 const RADII = [0, 16, 30, 50];
 const SPEEDS = [0, 85, 55, 32];
 const POINTS = [0, 100, 50, 20];
@@ -120,7 +121,7 @@ class Bullet {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    if (colors.glow) ctx.shadowBlur = 0;
   }
 }
 
@@ -162,7 +163,7 @@ class Asteroid {
   update(dt: number) {
     this.x = wrap(this.x + this.vx * dt, W);
     this.y = wrap(this.y + this.vy * dt, H);
-    this.rot += this.rotSpeed * dt;
+    this.rot = (this.rot + this.rotSpeed * dt) % TWO_PI;
   }
 
   split(): Asteroid[] {
@@ -235,7 +236,7 @@ class PowerUp {
     const r = this.radius * pulse;
     ctx.strokeRect(-r, -r, r * 2, r * 2);
     ctx.restore();
-    ctx.shadowBlur = 0;
+    if (colors.glow) ctx.shadowBlur = 0;
     ctx.fillStyle = colors.accent;
     ctx.font = "bold 12px monospace";
     ctx.textAlign = "center";
@@ -408,6 +409,8 @@ export function createAsteroidsEngine(
   callbacks: EngineCallbacks,
 ): EngineHandle {
   const colors = resolveColors(callbacks.skin ?? SKINS.clasico);
+  // Pre-computed palette with glow disabled — used when the caller sets shadow externally.
+  const noGlowColors: DrawColors = { ...colors, glow: 0 };
   let ship!: Ship;
   let bullets: Bullet[] = [];
   let asteroids: Asteroid[] = [];
@@ -609,10 +612,27 @@ export function createAsteroidsEngine(
     ctx.fillRect(0, 0, W, H);
 
     particles.forEach((p) => p.draw(ctx, colors));
-    asteroids.forEach((a) => a.draw(ctx, colors));
-    powerUps.forEach((p) => p.draw(ctx, colors));
-    bullets.forEach((b) => b.draw(ctx, colors));
-    ship.draw(ctx, colors);
+
+    if (colors.glow) {
+      // Batch shadow per entity type: one shadowBlur setup per type instead of per entity.
+      ctx.shadowColor = colors.line;
+      ctx.shadowBlur = colors.glow;
+      asteroids.forEach((a) => a.draw(ctx, noGlowColors));
+      ctx.shadowBlur = 0;
+
+      ctx.shadowColor = colors.bullet;
+      ctx.shadowBlur = colors.glow;
+      bullets.forEach((b) => b.draw(ctx, noGlowColors));
+      ctx.shadowBlur = 0;
+
+      powerUps.forEach((p) => p.draw(ctx, colors));
+      ship.draw(ctx, colors);
+    } else {
+      asteroids.forEach((a) => a.draw(ctx, colors));
+      powerUps.forEach((p) => p.draw(ctx, colors));
+      bullets.forEach((b) => b.draw(ctx, colors));
+      ship.draw(ctx, colors);
+    }
 
     drawHUD();
   }

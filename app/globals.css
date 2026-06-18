@@ -12,6 +12,7 @@
   --magenta: #ff006e;
   --yellow: #f5ff00;
   --green: #00ff88;
+  --lime: #aaff00;
   --gold: #ffcf3a;
   --silver: #c7d0e0;
   --bronze: #d97a3a;
@@ -169,6 +170,12 @@ a {
   text-shadow:
     0 0 6px rgba(0, 255, 136, 0.6),
     0 0 16px rgba(0, 255, 136, 0.35);
+}
+.neon-lime {
+  color: var(--lime);
+  text-shadow:
+    0 0 6px rgba(170, 255, 0, 0.65),
+    0 0 16px rgba(170, 255, 0, 0.4);
 }
 
 .flicker {
@@ -412,6 +419,15 @@ a {
   box-shadow:
     0 0 14px rgba(245, 255, 0, 0.6),
     inset 0 0 8px rgba(245, 255, 0, 0.35);
+}
+.btn.lime {
+  border-color: var(--lime);
+}
+.btn.lime:hover {
+  color: var(--lime);
+  box-shadow:
+    0 0 14px rgba(170, 255, 0, 0.55),
+    inset 0 0 8px rgba(170, 255, 0, 0.35);
 }
 .btn.ghost {
   border-color: var(--ink-faint);
@@ -836,6 +852,42 @@ a {
     linear-gradient(var(--magenta), var(--magenta)) 88% 35%/6px 30% no-repeat,
     radial-gradient(circle at 60% 60%, var(--yellow) 0 5px, transparent 6px);
   filter: drop-shadow(0 0 6px rgba(0, 245, 255, 0.4));
+}
+
+.cover-frogger {
+  background: linear-gradient(180deg, #001a08, #0a0a18);
+}
+.cover-frogger::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(170, 255, 0, 0.15) 0 18px,
+      transparent 18px 36px
+    ),
+    radial-gradient(
+      ellipse 28px 20px at 50% 58%,
+      var(--lime) 0 100%,
+      transparent 100%
+    ),
+    radial-gradient(
+      circle at 50% 28%,
+      rgba(170, 255, 0, 0.18) 0 40px,
+      transparent 41px
+    );
+  filter: drop-shadow(0 0 8px rgba(170, 255, 0, 0.55));
+}
+.cover-frogger::before {
+  content: "🐸";
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  filter: drop-shadow(0 0 6px rgba(170, 255, 0, 0.7));
+  z-index: 1;
 }
 
 /* ===== detail screen ===== */
@@ -3177,6 +3229,17 @@ a {
     gap: 3px;
     position: relative;
     z-index: 1;
+  }
+
+  /* Frogger has no A/B buttons — only a 4-way d-pad, centred and slightly
+     larger (≥56px dianas per Spec 08). */
+  .gamepad--frogger {
+    justify-content: center;
+  }
+
+  .gamepad-dpad--frogger {
+    grid-template-columns: repeat(3, 60px);
+    grid-template-rows: repeat(3, 60px);
   }
 
   .dpad-corner {
