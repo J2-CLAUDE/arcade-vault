@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import Auth from "@/components/auth";
 
 export default function Page() {
-  return <Auth />;
+  return (
+    <Suspense>
+      <Auth />
+    </Suspense>
+  );
 }
