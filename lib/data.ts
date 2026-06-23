@@ -163,11 +163,3 @@ export function seededScores(seed: number, count = 12): ScoreRow[] {
     .sort((a, b) => b.score - a.score)
     .map((r, i) => ({ ...r, rank: i + 1 }));
 }
-
-export type StoredUser = { name: string } | null;
-export type StoredScore = {
-  game: string;
-  score: number;
-  name: string;
-  at: number;
-};

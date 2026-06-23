@@ -26,6 +26,14 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getClaims();
+  const { data: claimsData } = await supabase.auth.getClaims();
+
+  const pathname = request.nextUrl.pathname;
+  if (!claimsData?.claims && pathname.startsWith("/jugar/")) {
+    const redirectUrl = new URL("/acceso", request.url);
+    redirectUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(redirectUrl);
+  }
+
   return supabaseResponse;
 }

@@ -31,7 +31,7 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
   // Shared state
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
-  const [name, setName] = useState(user?.name ?? "INVITADO");
+  const playerName = user?.displayName ?? "";
   const [saved, setSaved] = useState(false);
 
   // Mock ticker state (non-asteroids only)
@@ -180,7 +180,11 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
   const handleSave = async () => {
     const gameId = game.id ?? "";
     await Promise.all([
-      saveScore({ game_id: gameId, player_name: name, score: displayScore }),
+      saveScore({
+        game_id: gameId,
+        player_name: playerName,
+        score: displayScore,
+      }),
       incrementPlay(gameId),
     ]);
     setSaved(true);
@@ -195,7 +199,7 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
           <div className="hud-stat">
             <div className="l">Jugador</div>
             <div className="v" style={{ color: "var(--ink)" }}>
-              {user?.name ?? "INVITADO"}
+              {playerName}
             </div>
           </div>
           {/* Frogger: live HUD — DOM updated directly via refs at 60fps */}
@@ -378,7 +382,7 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
       {/* Mobile meta strip — replaces HUD on coarse-pointer devices */}
       <div className="player-meta">
         <div className="player-meta-info">
-          <span className="player-meta-name">{user?.name ?? "INVITADO"}</span>
+          <span className="player-meta-name">{playerName}</span>
           <fieldset
             className="skin-picker"
             role="radiogroup"
@@ -424,13 +428,16 @@ export default function GamePlayer({ game }: { game: GameWithStats }) {
             <div className="final">{displayScore.toLocaleString("es-ES")}</div>
             {!saved ? (
               <div className="input-row">
-                <input
-                  value={name}
-                  onChange={(e) =>
-                    setName(e.target.value.toUpperCase().slice(0, 10))
-                  }
-                  placeholder="TUS INICIALES"
-                />
+                <div
+                  className="mono"
+                  style={{
+                    fontSize: 13,
+                    color: "var(--cyan)",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  {playerName}
+                </div>
                 <button className="btn yellow" onClick={handleSave}>
                   GUARDAR PUNTUACIÓN
                 </button>

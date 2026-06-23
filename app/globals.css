@@ -293,6 +293,16 @@ a {
 .av-nav .auth-btn {
   margin-left: 16px;
 }
+.av-nav .nav-user {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--cyan);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .av-nav .hamburger {
   display: none;
 }
@@ -305,6 +315,9 @@ a {
     display: none;
   }
   .av-nav .coin-counter {
+    display: none;
+  }
+  .av-nav .nav-user {
     display: none;
   }
   .av-nav .hamburger {
@@ -1581,6 +1594,59 @@ a {
 .social .btn {
   padding: 12px;
   font-size: 9px;
+}
+.auth-error {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--magenta);
+  color: var(--magenta);
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+}
+.pw-rules {
+  margin: 8px 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pw-rule {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+}
+.pw-rule.ok {
+  color: var(--cyan);
+}
+.pw-rule.fail {
+  color: var(--ink-faint);
+}
+.otp-boxes {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+.otp-box {
+  width: 100%;
+  max-width: 48px;
+  height: 52px;
+  text-align: center;
+  font-family: var(--pixel);
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.otp-box:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
 }
 
 /* ===== salón ===== */

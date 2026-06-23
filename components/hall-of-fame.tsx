@@ -46,8 +46,9 @@ export default function HallOfFame({
 
   const game = games.find((g) => g.id === tab);
   const youRow = user
-    ? (rows.find((r) => r.name.toLowerCase() === user.name.toLowerCase()) ??
-      null)
+    ? (rows.find(
+        (r) => r.name.toLowerCase() === user.displayName.toLowerCase(),
+      ) ?? null)
     : null;
 
   return (
@@ -150,7 +151,7 @@ export default function HallOfFame({
                 #{String(youRow.rank).padStart(2, "0")}
               </div>
               <div className="pl" style={{ color: "var(--yellow)" }}>
-                {user.name}
+                {user.displayName}
               </div>
               <div
                 className="sc"
